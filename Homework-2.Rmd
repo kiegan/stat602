@@ -1,0 +1,78 @@
+---
+title: "Stat 602 Homework 2"
+author: "Kiegan Rice and Nate Garton"
+date: "Due 3/4/2019"
+output: pdf_document
+---
+
+## Problem 1  
+
+### Problem 4.3  
+
+### Problem 4.4  
+
+### Problem 5.1  
+
+Note: Most of this is on 602 HW2 from 2015 (problem 6)
+
+## Problem 2  
+
+### Part a  
+
+### Part b  
+
+## Problem 3  
+
+Note: This is Stat 602 HW3 from 2015 (problem 21)
+
+## Problem 4  
+
+Note: This is Stat 602 HW3 from 2015 (problem 22)
+
+Note: There is some crossover with 502X HW2 Q15(a) here.  
+
+### Part a   
+
+### Part b  
+
+### Part c  
+
+## Problem 5  
+
+Note: This is Stat 602 HW3 from 2015 (problem 23)
+
+### Part a  
+
+### Part b  
+
+## Problem 6  
+Note: This is 502X HW 2 Q16(a)
+
+### Part a  
+
+## Problem 7  
+
+### kNN  
+
+### elastic net  
+
+### PCR  
+
+### PLS  
+
+### MARS (in earth)  
+
+## Problem 8  
+
+### Part a  
+
+### Part b  
+
+### Part c  
+
+### Part d  
+
+
+
+
+
