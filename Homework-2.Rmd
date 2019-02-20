@@ -46,7 +46,7 @@ Note: This is Stat 602 HW3 from 2015 (problem 23)
 ### Part b  
 
 ## Problem 6  
-Note: This is 502X HW 2 Q16(a)
+Note: This is 502X HW 2 Q16(a)  (\textbf{Kiegan will do this problem})  
 
 ### Part a  
 
