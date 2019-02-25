@@ -5,6 +5,11 @@ date: "Due 3/4/2019"
 output: pdf_document
 ---
 
+```{r packages, echo = F, warning = F, message = F}
+library(tidyverse)
+library(gridExtra)
+```
+
 ## Problem 1  
 
 ### Problem 4.3  
@@ -48,7 +53,56 @@ Note: This is Stat 602 HW3 from 2015 (problem 23)
 ## Problem 6  
 Note: This is 502X HW 2 Q16(a)  (\textbf{Kiegan will do this problem})  
 
+```{r, echo = F, warning = F, message = F}
+
+p6_data <- read_csv("data/Problem3-4Data.csv")
+
+```
+
 ### Part a  
+
+The plots for this problem can be seen in \autoref{prob6pa}.  
+
+```{r prob6pa, echo = F, warning = F, message = F, fig.cap ="\\label{prob6pa} Plots for effective degrees of freedom 5 (top) and 9 (bottom) for Problem 6(a). "}
+spline5 <- smooth.spline(x = p6_data$x, y = p6_data$y, df = 5)
+spline5 <- data.frame(x = spline5$x, spline5 = spline5$y)
+loess5 <- loess(y~x, data = p6_data, enp.target = 5, degree = 1)
+
+
+p6_data <- p6_data %>% mutate(loess5 = loess5$fitted) %>% arrange(x) %>% full_join(spline5)
+
+
+plot_5df <- p6_data %>% ggplot() + geom_point(aes(x = x, y = y)) + 
+  geom_line(aes(x = x, y = spline5, color = "spline")) + 
+  geom_line(aes(x = x, y = loess5, color = "loess")) + 
+  scale_color_manual(name = "Fitting method", values = c("cyan", "coral"), 
+                     breaks = c("spline", "loess"), aesthetics = c("colour")) + 
+  theme_bw() + 
+  labs(x = "X", y = "Y", title = "Approximately 5 DF")
+
+
+
+spline9 <- smooth.spline(x = p6_data$x, y = p6_data$y, df = 9)
+spline9 <- data.frame(x = spline9$x, spline9 = spline9$y)
+loess9 <- loess(y~x, data = p6_data, enp.target = 9, degree = 1)
+
+
+p6_data <- p6_data %>% mutate(loess9 = loess9$fitted) %>% arrange(x) %>% full_join(spline9)
+
+
+plot_9df <- p6_data %>% ggplot() + geom_point(aes(x = x, y = y)) + 
+  geom_line(aes(x = x, y = spline9, color = "spline")) + 
+  geom_line(aes(x = x, y = loess9, color = "loess")) + 
+  scale_color_manual(name = "Fitting method", values = c("cyan", "coral"), 
+                     breaks = c("spline", "loess"), aesthetics = c("colour")) + 
+  theme_bw() + 
+  labs(x = "X", y = "Y", title = "Approximately 9 DF")
+
+
+grid.arrange(plot_5df, plot_9df, ncol = 1)
+
+```
+
 
 ## Problem 7  
 
