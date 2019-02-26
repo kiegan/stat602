@@ -461,7 +461,6 @@ $$
 A scatterplot of the data and the fitted values from the OLS model are shown below.
 
 ```{r, eval = TRUE, echo = FALSE, warning=FALSE, message=FALSE}
-library(wavelets)
 d3.4 <- read.csv(file = "data/data_3pt4.csv")
 
 haar_basis <- function(x,m)
@@ -548,6 +547,20 @@ points(x = d3.4$x[order(d3.4$x)], y = (X %*% beta3)[order(d3.4$x)], type = "l", 
 ## Problem 3  
 
 Note: This is Stat 602 HW3 from 2015 (problem 21)
+
+```{r, eval = TRUE, echo = FALSE, warning=FALSE, message=FALSE}
+library(splines)
+d3.4 <- read.csv(file = "data/data_3pt4.csv")
+xsi <- c(0.1, 0.3, 0.5, 0.7, 0.9)
+
+Xspline <- ns(x = d3.4$x, knots = xsi, intercept = TRUE, Boundary.knots = c(0,1))
+
+mod_spline <- lm(formula = d3.4$y ~ X - 1)
+
+plot(d3.4$x, d3.4$y, xlab = "x", ylab = "y")
+points(d3.4$x[order(d3.4$x)], mod_spline$fitted.values[order(d3.4$x)], type = "l")
+
+```
 
 ## Problem 4  
 
