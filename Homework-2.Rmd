@@ -14,6 +14,12 @@ library(gridExtra)
 
 ### Problem 4.3  
 
+```{r prob4p3, echo = F, warning = F, message = F}
+prob4p3_data <- read_csv("data/AmesHousingData.csv")
+prob4p3_data <- prob4p3_data %>% select(Price, Size, Fireplace, `Bsmt Bath`, Land)
+
+```
+
 ### Problem 4.4  
 
 ### Problem 5.1  
