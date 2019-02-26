@@ -282,14 +282,62 @@ The best $rank=2$ approximation to $\tilde{X}$ will be $\tilde{X}^{*2} = \tilde{
 \end{displaymath}
 
 
-\textbf{Part f} - NEED TO FINISH  
+\textbf{Part f}  
+
+Note that since here we are dealing with a sample covariance matrix, we have a symmetric non-negative definite matrix, so an eigen analysis will also yield all the information we need for a singular value decomposition, and thus we can easily find the best 1 and 2 component approximations.  
 
 
 ```{r, echo = F, warning = F, message = F}
 tilde_covar <- 0.2*t(xtilde) %*% xtilde
 
 tilde_covar_eigen <- eigen(tilde_covar)
+tilde_covar_u <- tilde_covar_eigen$vectors
+tilde_covar_d <- tilde_covar_eigen$values
+
+tilde_covar_u1 <- tilde_covar_u[,1]
+tilde_covar_d1 <- tilde_covar_d[1]
+tilde_covar_star1 <- tilde_covar_u1 %*% matrix(tilde_covar_d1) %*% t(tilde_covar_u1)
+
+
+tilde_covar_u2 <- tilde_covar_u[,1:2]
+tilde_covar_d2 <- tilde_covar_d[1:2]
+tilde_covar_star2 <- tilde_covar_u2 %*% diag(tilde_covar_d2) %*% t(tilde_covar_u2)
 ```
+
+We begin with the matrix: 
+
+\begin{displaymath}
+\frac{1}{5}\tilde{X}' \tilde{X} = `r m2l(tilde_covar)`
+\end{displaymath}
+
+
+An eigen decomposition yields: 
+
+\begin{displaymath}
+\mbox{Eigenvalues} = D = `r m2l(matrix(tilde_covar_d, nrow = 4))`, \quad \mbox{Eigenvectors} = U = V = `r m2l(tilde_covar_u)`
+\end{displaymath}
+
+Thus, a best 1 component approximation will be of the form: 
+
+\begin{displaymath}
+\frac{1}{5}\tilde{X'}\tilde{X}^{*1} = \tilde{U}_1 diag(\tilde{d}_1) \tilde{V}'_1 =  `r m2l(matrix(tilde_covar_u1, nrow = 4))` \times `r m2l(matrix(tilde_covar_d1, nrow = 1))` \times `r m2l(matrix(tilde_covar_u1, nrow = 1))`
+\end{displaymath}
+
+\begin{displaymath}
+= `r m2l(tilde_covar_star1)`
+\end{displaymath}
+
+A best 2 component approximation will be of the form: 
+
+\begin{displaymath}
+\frac{1}{5}\tilde{X'}\tilde{X}^{*2} = \tilde{U}_2 diag(\tilde{d}_1, \tilde{d}_2) \tilde{V}'_2 =  `r m2l(tilde_covar_u2)` \times `r m2l(diag(tilde_covar_d2))` \times `r m2l(t(tilde_covar_u2)) `
+\end{displaymath}
+
+\begin{displaymath}
+= `r m2l(tilde_covar_star2)`
+\end{displaymath}
+
+
 
 \textbf{Part d - standardized}  
 
@@ -375,7 +423,70 @@ The best $rank=2$ approximation to $\dbtilde{X}$ will be $\dbtilde{X}^{*2} = \db
 \end{displaymath}
 
 
-\textbf{Part f - standardized} - NEED TO FINISH  
+\textbf{Part f - standardized}  
+
+
+Note that since here we are dealing with a sample covariance matrix, we have a symmetric non-negative definite matrix, so an eigen analysis will also yield all the information we need for a singular value decomposition, and thus we can easily find the best 1 and 2 component approximations.  
+
+
+```{r, echo = F, warning = F, message = F}
+tilde2_covar <- 0.2*t(x2tilde) %*% x2tilde
+
+tilde2_covar_eigen <- eigen(tilde2_covar)
+tilde2_covar_u <- tilde2_covar_eigen$vectors
+tilde2_covar_d <- tilde2_covar_eigen$values
+
+tilde2_covar_u1 <- tilde2_covar_u[,1]
+tilde2_covar_d1 <- tilde2_covar_d[1]
+tilde2_covar_star1 <- tilde2_covar_u1 %*% matrix(tilde2_covar_d1) %*% t(tilde2_covar_u1)
+
+
+tilde2_covar_u2 <- tilde2_covar_u[,1:2]
+tilde2_covar_d2 <- tilde2_covar_d[1:2]
+tilde2_covar_star2 <- tilde2_covar_u2 %*% diag(tilde2_covar_d2) %*% t(tilde2_covar_u2)
+```
+
+We begin with the matrix: 
+
+\begin{displaymath}
+\frac{1}{5}\dbtilde{X}' \dbtilde{X} = `r m2l(tilde2_covar)`
+\end{displaymath}
+
+
+An eigen decomposition yields: 
+
+\begin{displaymath}
+\mbox{Eigenvalues} = D = `r m2l(matrix(tilde2_covar_d, nrow = 4))`, \quad \mbox{Eigenvectors} = U = V = `r m2l(tilde2_covar_u)`
+\end{displaymath}
+
+Thus, a best 1 component approximation will be of the form: 
+
+\begin{displaymath}
+\frac{1}{5}\dbtilde{X'}\dbtilde{X}^{*1} = \dbtilde{U}_1 diag(\dbtilde{d}_1) \dbtilde{V}'_1 =  `r m2l(matrix(tilde2_covar_u1, nrow = 4))` \times `r m2l(matrix(tilde2_covar_d1, nrow = 1))` \times `r m2l(matrix(tilde2_covar_u1, nrow = 1))`
+\end{displaymath}
+
+\begin{displaymath}
+= `r m2l(tilde2_covar_star1)`
+\end{displaymath}
+
+A best 2 component approximation will be of the form: 
+
+\begin{displaymath}
+\frac{1}{5}\dbtilde{X'}\dbtilde{X}^{*2} = \dbtilde{U}_2 diag(\dbtilde{d}_1, \dbtilde{d}_2) \dbtilde{V}'_2 =  `r m2l(tilde2_covar_u2)` \times `r m2l(diag(tilde2_covar_d2))` \times `r m2l(t(tilde2_covar_u2)) `
+\end{displaymath}
+
+\begin{displaymath}
+= `r m2l(tilde2_covar_star2)`
+\end{displaymath}
+
+
+
+
+
+
+
+
+
 
 
 ## Problem 2  
