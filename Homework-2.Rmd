@@ -2,13 +2,20 @@
 title: "Stat 602 Homework 2"
 author: "Kiegan Rice and Nate Garton"
 date: "Due 3/4/2019"
-output: pdf_document
+output: 
+  pdf_document: 
+    fig_caption: yes
+header-includes: \usepackage{float, mathtools}
 ---
+
+```{r global_options, echo = F, include = FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
 
 ```{r packages, echo = F, warning = F, message = F}
 library(tidyverse)
 library(gridExtra)
-library(xtable)
+library(knitr)
 ```
 
 ## Problem 1  
@@ -108,12 +115,12 @@ V =
 -0.37 & -0.72 & 0.57 & -0.06 \\
 \end{bmatrix}
 $$
-Thus, the basis for $C(X)$ will be the columns of $U$.  
+Thus, the basis for $C(X)$ will be the columns of the matrix $U$.  
 
 
 \textbf{Part b}  
 
-We can find the eigen (spectral) decomposition of $X'X$ by calculating the eigen values, $D^2$, and the eigenvectors, which will be the columns of $V$:  
+We can find the eigen (spectral) decomposition of $X'X$ by calculating the eigenvalues, $D^2$, and the eigenvectors, which will be the columns of $V$:  
 ```{r, echo = F, warning = F, message = F}
 d_5p1 <- svd_5p1$d
 v_5p1 <- svd_5p1$v
@@ -168,8 +175,157 @@ $$
 \textbf{Part c}  
 
 
+```{r, echo = F, warning = F, message = F}
+u_1 <- u_5p1[,1]
+v_1 <- v_5p1[,1]
+d_1 <- d_5p1[1]
+
+x_star1 <- d_1*u_1 %*% t(v_1)
+```
+
+The best $rank=1$ approximation to $X$ will be $X^{*1} = U_1 diag(d_1)V'_1$, where $U_1$ is a matrix with the first column of $U$, and $V_1$ is a matrix with the first column of $V$:  
+
+$$
+X^{*1} = U_1 diag(d_1) V'_1 = 
+\begin{bmatrix}
+-0.50 \\
+-0.50 \\
+-0.45 \\
+-0.39\\
+-0.36 \\
+\end{bmatrix} 
+\times [16.58] \times 
+\begin{bmatrix}
+-0.40 & -0.44  & -0.71 & -0.37 \\
+\end{bmatrix}
+$$
+
+$$
+=
+\begin{bmatrix}
+3.35 & 3.61 & 5.88 & 3.11 \\
+3.38 & 3.64 & 5.94 & 3.13 \\
+3.08 & 3.31 & 5.40 & 2.85 \\
+2.62 & 2.83 & 4.61 & 2.43 \\
+2.45 & 2.64 & 4.31 & 2.27 \\
+\end{bmatrix}
+$$
+
+
+
+```{r, echo = F, warning = F, message = F}
+u_2 <- u_5p1[,1:2]
+v_2 <- v_5p1[,1:2]
+d_2 <- diag(d_5p1[1:2])
+
+x_star2 <- u_2 %*%d_2 %*% t(v_2)
+```
+
+The best $rank=2$ approximation to $X$ will be $X^{*2} = U_2 diag(d_1, d_2)V'_2$, where $U_2$ is a matrix with the first two columns of $U$, and $V_2$ is a matrix with the first two columns of $V$:  
+
+$$
+X^{*2} = U_2 diag(d_1, d_2) V'_2 = 
+\begin{bmatrix}
+-0.50 & 0.53 \\
+-0.50 & -0.59\\
+-0.45 & 0.49 \\
+-0.39 & -0.32\\
+-0.36 & -0.17\\
+\end{bmatrix} 
+\times 
+\begin{bmatrix}
+16.58 & 0 \\
+0 & 3.78 \\
+\end{bmatrix}
+\times 
+\begin{bmatrix}
+-0.40 & -0.44  & -0.71 & -0.37 \\
+-0.43 & 0.30 & 0.45 & -0.72 \\
+\end{bmatrix}
+$$
+$$
+=
+\begin{bmatrix}
+2.48 & 4.20 & 6.78 & 1.66 \\
+4.34 & 2.97 & 4.95 & 4.75 \\
+2.28 & 3.86 & 6.23 & 1.51 \\
+3.16 & 2.46 & 4.07 & 3.33 \\
+2.73 & 2.44 & 4.01 & 2.74 \\
+\end{bmatrix}
+$$
+
 
 \textbf{Part d}  
+
+Note that 
+$$
+\tilde{X} = 
+\begin{bmatrix}
+-1 & 0.8 & 1.8 & -0.8  \\
+1 & -0.2 & -0.2 & 2.2  \\
+0 & 0.8 & 0.8 & -1.8   \\
+2 & -1.2 & -1.2 & -0.8 \\
+-2 & -0.2 & -1.2 & 1.2 \\
+\end{bmatrix}
+$$
+```{r, echo = F, warning = F, message = F}
+xtilde <- scale(prob5p1_mat, center = T, scale = F)
+svd_xtilde <- svd(xtilde)
+```
+
+
+
+The Singular Value Decomposition of $\tilde{X}$ is: 
+
+$$
+U = 
+\begin{bmatrix}
+-0.57 & 0.16 & 0.28 & -0.60  \\
+-0.51 & 0.11 & 0.69 & 0.21 \\
+-0.50 & -0.25 & -0.09 & 0.69 \\
+0.34 & -0.68 & -0.32 & -0.33 \\
+0.22 & 0.65 & -0.56 & 0.03 \\
+\end{bmatrix}, 
+\quad D = 
+\begin{bmatrix}
+3.83 & 0 & 0 & 0 \\
+0 & 3.38 & 0 & 0 \\
+0 & 0 & 2.01 & 0 \\
+0 & 0 & 0 & 0.48 \\
+\end{bmatrix},
+$$
+$$
+V = 
+\begin{bmatrix}
+0.34 & -0.81 & 0.45 & 0.18  \\
+-0.36 & 0.18 & 0.26 & 0.87 \\
+-0.57 & 0.03 & 0.68 & -0.45 \\
+0.64 & 0.56 & 0.52 & 0.00 \\
+\end{bmatrix}
+$$
+Therefore, the principal component directions will be the columns of $V$, the principal components will be the inner products $z_j = \langle x_i, v_j\rangle$, the columns of: 
+
+$$
+z = 
+\begin{bmatrix}
+-2.19 & 0.56 & -.57 & -0.29 \\
+1.95 & 0.39 & 1.40 & 0.10 \\
+-1.91 & -0.84 & -0.18 & 0.33 \\
+1.30 & -2.32 & -0.65 & -0.16 \\
+0.85 & 2.21 & -1.14 & 0.01 \\
+\end{bmatrix}
+$$
+ The "loadings" of the first principal component are the first column of the matrix $V$, 
+ 
+$$
+V_1 = 
+\begin{bmatrix}
+0.34 \\
+-0.37 \\
+-0.57 \\
+0.64
+\end{bmatrix}
+$$
 
 \textbf{Part e}  
 
