@@ -346,7 +346,8 @@ z =
 0.85 & 2.21 & -1.14 & 0.01 \\
 \end{bmatrix}
 $$
- The "loadings" of the first principal component are the first column of the matrix $V$, 
+ 
+The "loadings" of the first principal component are the first column of the matrix $V$, 
  
 $$
 V_1 = 
