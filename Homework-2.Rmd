@@ -5,8 +5,11 @@ date: "Due 3/4/2019"
 output: 
   pdf_document: 
     fig_caption: yes
-header-includes: \usepackage{float, mathtools}
+header-includes: \usepackage{float, mathtools, accents}
 ---
+
+
+\newcommand{\dbtilde}[1]{\accentset{\approx}{#1}}
 
 ```{r global_options, echo = F, include = FALSE}
 knitr::opts_chunk$set(fig.pos = 'H')
@@ -247,7 +250,7 @@ utilde_1 <- svd_xtilde$u[,1]
 vtilde_1 <- svd_xtilde$v[,1]
 dtilde_1 <- svd_xtilde$d[1]
 
-xtilde_star1 <- d_1 * utilde_1 %*% t(vtilde_1)
+xtilde_star1 <- dtilde_1 * utilde_1 %*% t(vtilde_1)
 ```
 
 \begin{displaymath}
@@ -279,14 +282,100 @@ The best $rank=2$ approximation to $\tilde{X}$ will be $\tilde{X}^{*2} = \tilde{
 \end{displaymath}
 
 
-\textbf{Part f}  
+\textbf{Part f} - NEED TO FINISH  
+
+
+```{r, echo = F, warning = F, message = F}
+tilde_covar <- 0.2*t(xtilde) %*% xtilde
+
+tilde_covar_eigen <- eigen(tilde_covar)
+```
 
 \textbf{Part d - standardized}  
 
+```{r, echo = F, warning = F, message = F}
+x2tilde <- scale(prob5p1_mat, center = T, scale = T)
+svd_x2tilde <- svd(x2tilde)
+```
+
+
+Note that 
+\begin{displaymath}
+\dbtilde{X} = `r m2l(x2tilde)`
+\end{displaymath}
+
+
+The Singular Value Decomposition of $\dbtilde{X}$ is: 
+
+\begin{displaymath}
+\dbtilde{U} = `r m2l(svd_x2tilde$u)`, \quad \dbtilde{D} = `r m2l(diag(svd_x2tilde$d))`
+\end{displaymath}
+
+\begin{displaymath}
+\dbtilde{V} = `r m2l(svd_x2tilde$v)`
+\end{displaymath}
+
+
+Therefore, the principal component directions will be the columns of $\dbtilde{V}$, the principal components will be the inner products $z_j = \langle x_i, v_j\rangle$, the columns of: 
+
+```{r, echo = F, warning = F, message = F}
+z2tilde_mat <- x2tilde %*% svd_x2tilde$v
+```
+
+
+\begin{displaymath}
+z = `r m2l(z2tilde_mat)`
+\end{displaymath}
+
+The "loadings" of the first principal component are the first column of the matrix $\dbtilde{V}$, 
+ 
+\begin{displaymath}
+\tilde{V}_1 = `r m2l(matrix(svd_x2tilde$v[,1], nrow = 4))`
+\end{displaymath}
+
+
 \textbf{Part e - standardized}  
 
-\textbf{Part f - standardized}  
+The best $rank = 1$ approximation to $\dbtilde{X}$ will be $\dbtilde{X}^{*1} = \dbtilde{U}_1 diag(\dbtilde{d}_1), \dbtilde{V}_1$, where $\dbtilde{U}_1$ is a matrix with first column of $\dbtilde{U}$ and $\dbtilde{V}_1$ is a matrix with the first column of $\dbtilde{V}$:  
 
+```{r, echo = F, warning =F, message = F} 
+u2tilde_1 <- svd_x2tilde$u[,1]
+v2tilde_1 <- svd_x2tilde$v[,1]
+d2tilde_1 <- svd_x2tilde$d[1]
+
+x2tilde_star1 <- d2tilde_1 * u2tilde_1 %*% t(v2tilde_1)
+```
+
+\begin{displaymath}
+\dbtilde{X}^{*1} = \dbtilde{U}_1 diag(\dbtilde{d}_1) \dbtilde{V}'_1 =  `r m2l(matrix(u2tilde_1, nrow = 5))` \times `r m2l(matrix(d2tilde_1, nrow =1))` \times `r m2l(matrix(v2tilde_1, nrow = 1)) `
+\end{displaymath}
+
+\begin{displaymath}
+= `r m2l(x2tilde_star1)`
+\end{displaymath}
+
+```{r, echo = F, warning =F, message = F} 
+u2tilde_2 <- svd_x2tilde$u[,1:2]
+v2tilde_2 <- svd_x2tilde$v[,1:2]
+d2tilde_2 <- diag(svd_x2tilde$d[1:2])
+
+x2tilde_star2 <-u2tilde_2 %*% d2tilde_2 %*% t(v2tilde_2)
+```
+
+
+The best $rank=2$ approximation to $\dbtilde{X}$ will be $\dbtilde{X}^{*2} = \dbtilde{U}_2 diag(\dbtilde{d}_1, \dbtilde{d}_2)\dbtilde{V}'_2$, where $\dbtilde{U}_2$ is a matrix with the first two columns of $\dbtilde{U}$, and $\dbtilde{V}_2$ is a matrix with the first two columns of $\dbtilde{V}$:  
+
+
+\begin{displaymath}
+\dbtilde{X}^{*2} = \dbtilde{U}_2 diag(\dbtilde{d}_1, \dbtilde{d}_2) \dbtilde{V}'_2 =  `r m2l(u2tilde_2)` \times `r m2l(d2tilde_2)` \times `r m2l(t(v2tilde_2)) `
+\end{displaymath}
+
+\begin{displaymath}
+= `r m2l(x2tilde_star2)`
+\end{displaymath}
+
+
+\textbf{Part f - standardized} - NEED TO FINISH  
 
 
 ## Problem 2  
@@ -417,7 +506,6 @@ Note: This is Stat 602 HW3 from 2015 (problem 23)
 ### Part b  
 
 ## Problem 6  
-Note: This is 502X HW 2 Q16(a)  (\textbf{Kiegan will do this problem})  
 
 ```{r, echo = F, warning = F, message = F}
 
