@@ -217,6 +217,8 @@ $$
 ## Problem 2  
 
 ### Part a  
+A scatterplot of the data and the fitted values from the OLS model are shown below.
+
 ```{r, eval = TRUE, echo = FALSE, warning=FALSE, message=FALSE}
 library(wavelets)
 d3.4 <- read.csv(file = "data/data_3pt4.csv")
@@ -228,12 +230,12 @@ haar_basis <- function(x,m)
   b <- max(x)
   
   ## transform the x-values to be on (0,1)
-  xtrans <- (x - a)/b
+  xtrans <- (x - a)/(b - a)
   
   ## create father function
   father <- function(x)
   {
-    return(1 * ( (0 < x) & (x <= 1) ) )
+    return(1 * ( (0 <= x) & (x <= 1) ) )
   }
   
   ## create mother function
@@ -245,30 +247,62 @@ haar_basis <- function(x,m)
   ## psi is a list where each element is a matrix corresponding to the basis functions corresponding to a specific m
   ## X is the design matrix
   psi <- list()
-  X <- matrix(nrow = length(x), ncol = 1)
+  X <- cbind(father(xtrans), mother(xtrans))
   for(i in 1:m)
   {
-    psi[[m]] <- matrix(nrow = length(x), ncol = 2^m - 1)
-    for(j in 1:(2^m - 1))
+    psi[[i]] <- matrix(nrow = length(x), ncol = length(0:(2^i - 1)))
+    for(j in 0:(2^i - 1))
     {
-      psi[[m]][,j] <- sqrt(2^m) * mother(2^m * (xtrans - j/(2^m)))
+      psi[[i]][,j + 1] <- sqrt(2^i) * mother(2^i * (xtrans - j/(2^i)))
     }
-    if(m == 1){
-      X <- psi[[m]]
-    }
-    if(m > 1){
-      X <- cbind(X, psi[[m]])
-    }
+    X <- cbind(X, psi[[i]])
   }
-  
   return(X)
-  
 }
+
+## create design matrix
+X <- haar_basis(x = d3.4$x, m = 3)
+
+## find beta hat
+mod_haar <- lm(formula = d3.4$y ~ X - 1)
+
+## plot data and wavelet predictions
+d3.4$fit <- mod_haar$fitted.values
+plot(d3.4$x, y = d3.4$y, xlab = "x", ylab = "y")
+points(x = d3.4$x[order(d3.4$x)], y = d3.4$fit[order(d3.4$x)], type = "l")
 
 ```
 
 
 ### Part b  
+
+The solid line in the plot below gives (approximately) the fitted values when there are 2 nonzero coefficients, the dashed line are fitted values when there are 4 nonzero coefficients, and the dotted line are fitted values for 8 nonzero coefficients. 
+
+```{r, echo = FALSE ,eval = TRUE, message=FALSE, warning=FALSE}
+library(glmnet)
+
+lasso_fits <- glmnet(x = X, y = d3.4$y, family = "gaussian", lambda = seq(from = 0, to = 0.5, by = 0.001))
+
+nonzero_counts <- numeric(length = ncol(lasso_fits$beta))
+nonzero_counts <- apply(X = lasso_fits$beta, MARGIN = 2, FUN = function(x){sum(1*(x!=0))})
+
+ind <- numeric()
+ind[1] <- max(which(x = nonzero_counts == 2))
+ind[2] <- max(which(x = nonzero_counts == 4))
+ind[3] <- max(which(x = nonzero_counts == 8))
+
+beta1 <- lasso_fits$beta[,ind[1]]
+beta2 <- lasso_fits$beta[,ind[2]]
+beta3 <- lasso_fits$beta[,ind[3]]
+
+## plot data and wavelet predictions
+plot(d3.4$x, y = d3.4$y, xlab = "x", ylab = "y")
+points(x = d3.4$x[order(d3.4$x)], y = (X %*% beta1)[order(d3.4$x)], type = "l", lty = 1, lwd = 2)
+points(x = d3.4$x[order(d3.4$x)], y = (X %*% beta2)[order(d3.4$x)], type = "l", lty = 2, lwd = 2)
+points(x = d3.4$x[order(d3.4$x)], y = (X %*% beta3)[order(d3.4$x)], type = "l", lty = 3, lwd = 2)
+
+
+```
 
 ## Problem 3  
 
