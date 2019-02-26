@@ -8,6 +8,7 @@ output: pdf_document
 ```{r packages, echo = F, warning = F, message = F}
 library(tidyverse)
 library(gridExtra)
+library(xtable)
 ```
 
 ## Problem 1  
@@ -34,19 +35,139 @@ prob5p1_mat <- matrix(c(2, 4, 7, 2,
 #Note: Most of this is on 602 HW2 from 2015 (problem 6)  
 ```
 
+The following are decompositions using the matrix
 
+$$
+X = 
+\begin{bmatrix}
+2 & 4 & 7 & 2 \\
+4 & 3 & 5 & 5\\
+3 & 4 & 6 & 1 \\
+5 & 2 & 4 & 2 \\
+1 & 3 & 4 & 4 \\
+\end{bmatrix}
+$$
 
 \textbf{Part a}  
 
-```{r, echo = F, warning = F, message = F}
+```{r, echo = F, warning = F, message = F, results='asis'}
 qr_5p1 <- qr(prob5p1_mat)
+qr_bases <- qr.Q(qr_5p1)
+qr_r <- qr.R(qr_5p1)
+
 
 svd_5p1 <- svd(prob5p1_mat)
 ```
 
+The QR decomposition of $X$ is: 
+
+$$
+Q = 
+\begin{bmatrix}
+-0.27 & 0.57 & 0.77 & 0.04 \\
+-0.54 & -0.07 & -0.13 & 0.56 \\
+-0.40 & 0.37 & -0.35 & -0.71\\
+-0.67 & -0.50 & 0.10 & -0.13\\
+-0.13 & 0.53 & -0.50 & 0.40\\
+\end{bmatrix}, \quad \quad R = 
+\begin{bmatrix}
+-7.42 & -6.07 & -10.25 & -5.53 \\
+0 & 4.14 & 5.99 & 2.28 \\
+0 & 0 & 1.06 & -1.23 \\
+0 & 0 & 0 & 3.57 \\
+\end{bmatrix}
+$$
+Thus, the basis for $C(X)$ will be the columns of the matrix $Q$.  
+
+The Singular Value Decomposition of $X$ is:  
+
+$$
+U = 
+\begin{bmatrix}
+-0.50 & 0.53 & 0.16 & -0.66  \\
+-0.50 & -0.59 & 0.13 & -0.11 \\
+-0.45 & 0.49 & -0.25 & 0.65 \\
+-0.39 & -0.32 & -0.68 & -0.08 \\
+-0.36 & -0.17 & 0.65 & 0.35 \\
+\end{bmatrix}, 
+\quad D = 
+\begin{bmatrix}
+16.58 & 0 & 0 & 0 \\
+0 & 3.78 & 0 & 0 \\
+0 & 0 & 3.38 & 0 \\
+0 & 0 & 0 & 0.55 \\
+\end{bmatrix},
+$$
+
+$$
+V = 
+\begin{bmatrix}
+-0.40 & -0.43 & -0.80 & 0.12  \\
+-0.44 & 0.30 & 0.18 & 0.83 \\
+-0.71 & 0.45 & 0.04 & -0.54 \\
+-0.37 & -0.72 & 0.57 & -0.06 \\
+\end{bmatrix}
+$$
+Thus, the basis for $C(X)$ will be the columns of $U$.  
+
+
 \textbf{Part b}  
 
+We can find the eigen (spectral) decomposition of $X'X$ by calculating the eigen values, $D^2$, and the eigenvectors, which will be the columns of $V$:  
+```{r, echo = F, warning = F, message = F}
+d_5p1 <- svd_5p1$d
+v_5p1 <- svd_5p1$v
+u_5p1 <- svd_5p1$u
+
+xpx <- v_5p1 %*% diag(d_5p1^2) %*% t(v_5p1)
+eigen_5p1 <- eigen(xpx)
+
+xxp <- u_5p1 %*% diag(d_5p1^2) %*% t(u_5p1)
+eigen2_5p1 <- eigen(xxp)
+```
+
+$$
+D^2 = 
+\begin{bmatrix}
+274.94 \\
+14.32 \\
+11.44\\
+ 0.30 \\
+\end{bmatrix}, \quad
+V = 
+\begin{bmatrix}
+-0.40 & -0.43 & -0.80 & 0.12  \\
+-0.44 & 0.30 & 0.18 & 0.83 \\
+-0.71 & 0.45 & 0.04 & -0.54 \\
+-0.37 & -0.72 & 0.57 & -0.06 \\
+\end{bmatrix}
+$$
+
+
+We can find the eigen (spectral) decomposition of $XX'$ by calculating the eigenvalues, $D^2$, and the eigenvectors, which will be the columns of $U$ (rather than $V$ as for $X'X$):  
+
+$$
+D^2 = 
+\begin{bmatrix}
+274.94 \\
+14.32 \\
+11.44\\
+ 0.30 \\
+\end{bmatrix}, \quad
+U = 
+\begin{bmatrix}
+-0.50 & 0.53 & 0.16 & -0.66  \\
+-0.50 & -0.59 & 0.13 & -0.11 \\
+-0.45 & 0.49 & -0.25 & 0.65 \\
+-0.39 & -0.32 & -0.68 & -0.08 \\
+-0.36 & -0.17 & 0.65 & 0.35 \\
+\end{bmatrix}
+$$
+
+
 \textbf{Part c}  
+
+
 
 \textbf{Part d}  
 
