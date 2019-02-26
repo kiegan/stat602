@@ -299,6 +299,8 @@ $$
 -2 & -0.2 & -1.2 & 1.2 \\
 \end{bmatrix}
 $$
+
+
 ```{r, echo = F, warning = F, message = F}
 xtilde <- scale(prob5p1_mat, center = T, scale = F)
 svd_xtilde <- svd(xtilde)
@@ -309,7 +311,7 @@ svd_xtilde <- svd(xtilde)
 The Singular Value Decomposition of $\tilde{X}$ is: 
 
 $$
-U = 
+\tilde{U} = 
 \begin{bmatrix}
 -0.57 & 0.16 & 0.28 & -0.60  \\
 -0.51 & 0.11 & 0.69 & 0.21 \\
@@ -317,7 +319,7 @@ U =
 0.34 & -0.68 & -0.32 & -0.33 \\
 0.22 & 0.65 & -0.56 & 0.03 \\
 \end{bmatrix}, 
-\quad D = 
+\quad \tilde{D} = 
 \begin{bmatrix}
 3.83 & 0 & 0 & 0 \\
 0 & 3.38 & 0 & 0 \\
@@ -326,7 +328,7 @@ U =
 \end{bmatrix},
 $$
 $$
-V = 
+\tilde{V} = 
 \begin{bmatrix}
 0.34 & -0.81 & 0.45 & 0.18  \\
 -0.36 & 0.18 & 0.26 & 0.87 \\
@@ -334,7 +336,7 @@ V =
 0.64 & 0.56 & 0.52 & 0.00 \\
 \end{bmatrix}
 $$
-Therefore, the principal component directions will be the columns of $V$, the principal components will be the inner products $z_j = \langle x_i, v_j\rangle$, the columns of: 
+Therefore, the principal component directions will be the columns of $\tilde{V}$, the principal components will be the inner products $z_j = \langle x_i, v_j\rangle$, the columns of: 
 
 $$
 z = 
@@ -347,10 +349,10 @@ z =
 \end{bmatrix}
 $$
  
-The "loadings" of the first principal component are the first column of the matrix $V$, 
+The "loadings" of the first principal component are the first column of the matrix $\tilde{V}$, 
  
 $$
-V_1 = 
+\tilde{V_1} = 
 \begin{bmatrix}
 0.34 \\
 -0.37 \\
@@ -360,6 +362,88 @@ V_1 =
 $$
 
 \textbf{Part e}  
+
+The best $rank = 1$ approximation to $\tilde{X}$ will be $\tilde{X}^{*1} = \tilde{U}_1 diag(\tilde{d}_1), \tilde{V}_1$, where $\tilde{U}_1$ is a matrix with first column of $\tilde{U}$ and $\tilde{V}_1$ is a matrix with the first column of $\tilde{V}$:  
+
+```{r, echo = F, warning =F, message = F} 
+utilde_1 <- svd_xtilde$u[,1]
+vtilde_1 <- svd_xtilde$v[,1]
+dtilde_1 <- svd_xtilde$d[1]
+
+xtilde_star1 <- d_1 * utilde_1 %*% t(vtilde_1)
+```
+
+$$
+\tilde{X}^{*1} = \tilde{U}_1 diag(\tilde{d}_1) \tilde{V}'_1 = 
+\begin{bmatrix}
+-0.57 \\
+-0.51 \\
+-0.50 \\
+-0.34\\
+-0.22 \\
+\end{bmatrix} 
+\times [3.83] \times 
+\begin{bmatrix}
+0.34 & -0.37  & -0.57 & 0.64 \\
+\end{bmatrix}
+$$
+
+
+$$
+=
+\begin{bmatrix}
+-3.25 & 3.49 & 5.45 & -6.10 \\
+2.90 & -3.10 & -4.85 & 5.44 \\
+-2.85 & 3.05 & 4.76 & -5.34 \\
+1.94 & -2.08 & -3.24 & 3.64 \\
+1.26 & -1.35 & -2.11 & 2.37 \\
+\end{bmatrix}
+$$
+
+
+
+```{r, echo = F, warning =F, message = F} 
+utilde_2 <- svd_xtilde$u[,1:2]
+vtilde_2 <- svd_xtilde$v[,1:2]
+dtilde_2 <- diag(svd_xtilde$d[1:2])
+
+xtilde_star2 <-utilde_2 %*% dtilde_2 %*% t(vtilde_2)
+```
+
+
+The best $rank=2$ approximation to $\tilde{X}$ will be $\tilde{X}^{*2} = \tilde{U}_2 diag(\tilde{d}_1, \tilde{d}_2)\tilde{V}'_2$, where $\tilde{U}_2$ is a matrix with the first two columns of $\tilde{U}$, and $\tilde{V}_2$ is a matrix with the first two columns of $\tilde{V}$:  
+
+$$
+\tilde{X}^{*2} = \tilde{U}_2 diag(\tilde{d}_1, \tilde{d}_2) \tilde{V}'_2 = 
+\begin{bmatrix}
+-0.57 & 0.16 \\
+0.51 & 0.11\\
+-0.50 & -0.25 \\
+0.34 & -0.68\\
+0.22 & 0.65\\
+\end{bmatrix} 
+\times 
+\begin{bmatrix}
+3.83 & 0 \\
+0 & 3.38 \\
+\end{bmatrix}
+\times 
+\begin{bmatrix}
+0.34 & -0.37  & -0.57 & 0.64 \\
+-0.81 & 0.18 & 0.03 & 0.56 \\
+\end{bmatrix}
+$$
+$$
+=
+\begin{bmatrix}
+-1.20 & 0.90 & 1.28 & -1.09 \\
+0.36 & -0.65 & -1.10 & 1.47 \\
+0.02 & 0.55 & 1.07 & -1.71 \\
+2.31 & -0.89 & -0.83 & -0.46 \\
+-1.49 & 0.08 & -0.41 & 1.79 \\
+\end{bmatrix}
+$$
+
 
 \textbf{Part f}  
 
