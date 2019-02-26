@@ -71,20 +71,27 @@ prob5p1_mat <- matrix(c(2, 4, 7, 2,
                         1, 3, 4, 4), nrow = 5, byrow = T)
 
 #Note: Most of this is on 602 HW2 from 2015 (problem 6)  
+
+m2l <- function(matr) {
+
+    printmrow <- function(x) {
+
+        ret <- paste(paste(round(x, 2),collapse = " & "),"\\\\")
+        sprintf(ret)
+    }
+
+    out <- apply(matr,1,printmrow)
+    out2 <- paste("\\begin{bmatrix}",paste(out,collapse=' '),"\\end{bmatrix}")
+    return(out2)
+}
+
+
 ```
 
 The following are decompositions using the matrix
-
-$$
-X = 
-\begin{bmatrix}
-2 & 4 & 7 & 2 \\
-4 & 3 & 5 & 5\\
-3 & 4 & 6 & 1 \\
-5 & 2 & 4 & 2 \\
-1 & 3 & 4 & 4 \\
-\end{bmatrix}
-$$
+\begin{displaymath}
+X = `r m2l(prob5p1_mat)`
+\end{displaymath}
 
 \textbf{Part a}  
 
@@ -99,59 +106,29 @@ svd_5p1 <- svd(prob5p1_mat)
 
 The QR decomposition of $X$ is: 
 
-$$
-Q = 
-\begin{bmatrix}
--0.27 & 0.57 & 0.77 & 0.04 \\
--0.54 & -0.07 & -0.13 & 0.56 \\
--0.40 & 0.37 & -0.35 & -0.71\\
--0.67 & -0.50 & 0.10 & -0.13\\
--0.13 & 0.53 & -0.50 & 0.40\\
-\end{bmatrix}, \quad \quad R = 
-\begin{bmatrix}
--7.42 & -6.07 & -10.25 & -5.53 \\
-0 & 4.14 & 5.99 & 2.28 \\
-0 & 0 & 1.06 & -1.23 \\
-0 & 0 & 0 & 3.57 \\
-\end{bmatrix}
-$$
+\begin{displaymath}
+Q = `r m2l(qr_bases)`, \quad R = `r m2l(qr_r)`
+\end{displaymath}
+
 Thus, the basis for $C(X)$ will be the columns of the matrix $Q$.  
 
 The Singular Value Decomposition of $X$ is:  
+\begin{displaymath}
+U = `r m2l(svd_5p1$u)`, \quad D = `r m2l(diag(svd_5p1$d))`,
+\end{displaymath}
 
-$$
-U = 
-\begin{bmatrix}
--0.50 & 0.53 & 0.16 & -0.66  \\
--0.50 & -0.59 & 0.13 & -0.11 \\
--0.45 & 0.49 & -0.25 & 0.65 \\
--0.39 & -0.32 & -0.68 & -0.08 \\
--0.36 & -0.17 & 0.65 & 0.35 \\
-\end{bmatrix}, 
-\quad D = 
-\begin{bmatrix}
-16.58 & 0 & 0 & 0 \\
-0 & 3.78 & 0 & 0 \\
-0 & 0 & 3.38 & 0 \\
-0 & 0 & 0 & 0.55 \\
-\end{bmatrix},
-$$
+\begin{displaymath}
+V = `r m2l(svd_5p1$v)`
+\end{displaymath}
 
-$$
-V = 
-\begin{bmatrix}
--0.40 & -0.43 & -0.80 & 0.12  \\
--0.44 & 0.30 & 0.18 & 0.83 \\
--0.71 & 0.45 & 0.04 & -0.54 \\
--0.37 & -0.72 & 0.57 & -0.06 \\
-\end{bmatrix}
-$$
+
 Thus, the basis for $C(X)$ will be the columns of the matrix $U$.  
 
 
 \textbf{Part b}  
 
 We can find the eigen (spectral) decomposition of $X'X$ by calculating the eigenvalues, $D^2$, and the eigenvectors, which will be the columns of $V$:  
+
 ```{r, echo = F, warning = F, message = F}
 d_5p1 <- svd_5p1$d
 v_5p1 <- svd_5p1$v
@@ -164,44 +141,17 @@ xxp <- u_5p1 %*% diag(d_5p1^2) %*% t(u_5p1)
 eigen2_5p1 <- eigen(xxp)
 ```
 
-$$
-D^2 = 
-\begin{bmatrix}
-274.94 \\
-14.32 \\
-11.44\\
- 0.30 \\
-\end{bmatrix}, \quad
-V = 
-\begin{bmatrix}
--0.40 & -0.43 & -0.80 & 0.12  \\
--0.44 & 0.30 & 0.18 & 0.83 \\
--0.71 & 0.45 & 0.04 & -0.54 \\
--0.37 & -0.72 & 0.57 & -0.06 \\
-\end{bmatrix}
-$$
+
+\begin{displaymath}
+D^2 = `r m2l(matrix(d_5p1^2, nrow = 4))`, \quad V = `r m2l(v_5p1)`
+\end{displaymath}
 
 
 We can find the eigen (spectral) decomposition of $XX'$ by calculating the eigenvalues, $D^2$, and the eigenvectors, which will be the columns of $U$ (rather than $V$ as for $X'X$):  
 
-$$
-D^2 = 
-\begin{bmatrix}
-274.94 \\
-14.32 \\
-11.44\\
- 0.30 \\
-\end{bmatrix}, \quad
-U = 
-\begin{bmatrix}
--0.50 & 0.53 & 0.16 & -0.66  \\
--0.50 & -0.59 & 0.13 & -0.11 \\
--0.45 & 0.49 & -0.25 & 0.65 \\
--0.39 & -0.32 & -0.68 & -0.08 \\
--0.36 & -0.17 & 0.65 & 0.35 \\
-\end{bmatrix}
-$$
-
+\begin{displaymath}
+D^2 = `r m2l(matrix(d_5p1^2, nrow = 4))`, \quad V = `r m2l(u_5p1)`
+\end{displaymath}
 
 \textbf{Part c}  
 
@@ -216,32 +166,13 @@ x_star1 <- d_1*u_1 %*% t(v_1)
 
 The best $rank=1$ approximation to $X$ will be $X^{*1} = U_1 diag(d_1)V'_1$, where $U_1$ is a matrix with the first column of $U$, and $V_1$ is a matrix with the first column of $V$:  
 
-$$
-X^{*1} = U_1 diag(d_1) V'_1 = 
-\begin{bmatrix}
--0.50 \\
--0.50 \\
--0.45 \\
--0.39\\
--0.36 \\
-\end{bmatrix} 
-\times [16.58] \times 
-\begin{bmatrix}
--0.40 & -0.44  & -0.71 & -0.37 \\
-\end{bmatrix}
-$$
+\begin{displaymath}
+X^{*1} = U_1 diag(d_1) V'_1 = `r m2l(matrix(u_1, nrow = 5))` \times `r m2l(matrix(d_1, nrow =1))` \times `r m2l(matrix(v_1, nrow = 1)) `
+\end{displaymath}
 
-$$
-=
-\begin{bmatrix}
-3.35 & 3.61 & 5.88 & 3.11 \\
-3.38 & 3.64 & 5.94 & 3.13 \\
-3.08 & 3.31 & 5.40 & 2.85 \\
-2.62 & 2.83 & 4.61 & 2.43 \\
-2.45 & 2.64 & 4.31 & 2.27 \\
-\end{bmatrix}
-$$
-
+\begin{displaymath}
+= `r m2l(x_star1)`
+\end{displaymath}
 
 
 ```{r, echo = F, warning = F, message = F}
@@ -254,52 +185,18 @@ x_star2 <- u_2 %*%d_2 %*% t(v_2)
 
 The best $rank=2$ approximation to $X$ will be $X^{*2} = U_2 diag(d_1, d_2)V'_2$, where $U_2$ is a matrix with the first two columns of $U$, and $V_2$ is a matrix with the first two columns of $V$:  
 
-$$
-X^{*2} = U_2 diag(d_1, d_2) V'_2 = 
-\begin{bmatrix}
--0.50 & 0.53 \\
--0.50 & -0.59\\
--0.45 & 0.49 \\
--0.39 & -0.32\\
--0.36 & -0.17\\
-\end{bmatrix} 
-\times 
-\begin{bmatrix}
-16.58 & 0 \\
-0 & 3.78 \\
-\end{bmatrix}
-\times 
-\begin{bmatrix}
--0.40 & -0.44  & -0.71 & -0.37 \\
--0.43 & 0.30 & 0.45 & -0.72 \\
-\end{bmatrix}
-$$
-$$
-=
-\begin{bmatrix}
-2.48 & 4.20 & 6.78 & 1.66 \\
-4.34 & 2.97 & 4.95 & 4.75 \\
-2.28 & 3.86 & 6.23 & 1.51 \\
-3.16 & 2.46 & 4.07 & 3.33 \\
-2.73 & 2.44 & 4.01 & 2.74 \\
-\end{bmatrix}
-$$
+
+\begin{displaymath}
+X^{*2} = U_2 diag(d_1, d_2) V'_2 = `r m2l(u_2)` \times `r m2l(d_2)` \times `r m2l(t(v_2)) `
+\end{displaymath}
+
+\begin{displaymath}
+= `r m2l(x_star2)`
+\end{displaymath}
+
 
 
 \textbf{Part d}  
-
-Note that 
-$$
-\tilde{X} = 
-\begin{bmatrix}
--1 & 0.8 & 1.8 & -0.8  \\
-1 & -0.2 & -0.2 & 2.2  \\
-0 & 0.8 & 0.8 & -1.8   \\
-2 & -1.2 & -1.2 & -0.8 \\
--2 & -0.2 & -1.2 & 1.2 \\
-\end{bmatrix}
-$$
-
 
 ```{r, echo = F, warning = F, message = F}
 xtilde <- scale(prob5p1_mat, center = T, scale = F)
@@ -307,59 +204,39 @@ svd_xtilde <- svd(xtilde)
 ```
 
 
+Note that 
+\begin{displaymath}
+\tilde{X} = `r m2l(xtilde)`
+\end{displaymath}
+
 
 The Singular Value Decomposition of $\tilde{X}$ is: 
 
-$$
-\tilde{U} = 
-\begin{bmatrix}
--0.57 & 0.16 & 0.28 & -0.60  \\
--0.51 & 0.11 & 0.69 & 0.21 \\
--0.50 & -0.25 & -0.09 & 0.69 \\
-0.34 & -0.68 & -0.32 & -0.33 \\
-0.22 & 0.65 & -0.56 & 0.03 \\
-\end{bmatrix}, 
-\quad \tilde{D} = 
-\begin{bmatrix}
-3.83 & 0 & 0 & 0 \\
-0 & 3.38 & 0 & 0 \\
-0 & 0 & 2.01 & 0 \\
-0 & 0 & 0 & 0.48 \\
-\end{bmatrix},
-$$
-$$
-\tilde{V} = 
-\begin{bmatrix}
-0.34 & -0.81 & 0.45 & 0.18  \\
--0.36 & 0.18 & 0.26 & 0.87 \\
--0.57 & 0.03 & 0.68 & -0.45 \\
-0.64 & 0.56 & 0.52 & 0.00 \\
-\end{bmatrix}
-$$
+\begin{displaymath}
+\tilde{U} = `r m2l(svd_xtilde$u)`, \quad \tilde{D} = `r m2l(diag(svd_xtilde$d))`
+\end{displaymath}
+
+\begin{displaymath}
+\tilde{V} = `r m2l(svd_xtilde$v)`
+\end{displaymath}
+
+
 Therefore, the principal component directions will be the columns of $\tilde{V}$, the principal components will be the inner products $z_j = \langle x_i, v_j\rangle$, the columns of: 
 
-$$
-z = 
-\begin{bmatrix}
--2.19 & 0.56 & -.57 & -0.29 \\
-1.95 & 0.39 & 1.40 & 0.10 \\
--1.91 & -0.84 & -0.18 & 0.33 \\
-1.30 & -2.32 & -0.65 & -0.16 \\
-0.85 & 2.21 & -1.14 & 0.01 \\
-\end{bmatrix}
-$$
- 
+```{r, echo = F, warning = F, message = F}
+ztilde_mat <- xtilde %*% svd_xtilde$v
+```
+
+
+\begin{displaymath}
+z = `r m2l(ztilde_mat)`
+\end{displaymath}
+
 The "loadings" of the first principal component are the first column of the matrix $\tilde{V}$, 
  
-$$
-\tilde{V_1} = 
-\begin{bmatrix}
-0.34 \\
--0.37 \\
--0.57 \\
-0.64
-\end{bmatrix}
-$$
+\begin{displaymath}
+\tilde{V}_1 = `r m2l(matrix(svd_xtilde$v[,1], nrow = 4))`
+\end{displaymath}
 
 \textbf{Part e}  
 
@@ -373,34 +250,13 @@ dtilde_1 <- svd_xtilde$d[1]
 xtilde_star1 <- d_1 * utilde_1 %*% t(vtilde_1)
 ```
 
-$$
-\tilde{X}^{*1} = \tilde{U}_1 diag(\tilde{d}_1) \tilde{V}'_1 = 
-\begin{bmatrix}
--0.57 \\
--0.51 \\
--0.50 \\
--0.34\\
--0.22 \\
-\end{bmatrix} 
-\times [3.83] \times 
-\begin{bmatrix}
-0.34 & -0.37  & -0.57 & 0.64 \\
-\end{bmatrix}
-$$
+\begin{displaymath}
+\tilde{X}^{*1} = \tilde{U}_1 diag(\tilde{d}_1) \tilde{V}'_1 =  `r m2l(matrix(utilde_1, nrow = 5))` \times `r m2l(matrix(dtilde_1, nrow =1))` \times `r m2l(matrix(vtilde_1, nrow = 1)) `
+\end{displaymath}
 
-
-$$
-=
-\begin{bmatrix}
--3.25 & 3.49 & 5.45 & -6.10 \\
-2.90 & -3.10 & -4.85 & 5.44 \\
--2.85 & 3.05 & 4.76 & -5.34 \\
-1.94 & -2.08 & -3.24 & 3.64 \\
-1.26 & -1.35 & -2.11 & 2.37 \\
-\end{bmatrix}
-$$
-
-
+\begin{displaymath}
+= `r m2l(xtilde_star1)`
+\end{displaymath}
 
 ```{r, echo = F, warning =F, message = F} 
 utilde_2 <- svd_xtilde$u[,1:2]
@@ -413,36 +269,14 @@ xtilde_star2 <-utilde_2 %*% dtilde_2 %*% t(vtilde_2)
 
 The best $rank=2$ approximation to $\tilde{X}$ will be $\tilde{X}^{*2} = \tilde{U}_2 diag(\tilde{d}_1, \tilde{d}_2)\tilde{V}'_2$, where $\tilde{U}_2$ is a matrix with the first two columns of $\tilde{U}$, and $\tilde{V}_2$ is a matrix with the first two columns of $\tilde{V}$:  
 
-$$
-\tilde{X}^{*2} = \tilde{U}_2 diag(\tilde{d}_1, \tilde{d}_2) \tilde{V}'_2 = 
-\begin{bmatrix}
--0.57 & 0.16 \\
-0.51 & 0.11\\
--0.50 & -0.25 \\
-0.34 & -0.68\\
-0.22 & 0.65\\
-\end{bmatrix} 
-\times 
-\begin{bmatrix}
-3.83 & 0 \\
-0 & 3.38 \\
-\end{bmatrix}
-\times 
-\begin{bmatrix}
-0.34 & -0.37  & -0.57 & 0.64 \\
--0.81 & 0.18 & 0.03 & 0.56 \\
-\end{bmatrix}
-$$
-$$
-=
-\begin{bmatrix}
--1.20 & 0.90 & 1.28 & -1.09 \\
-0.36 & -0.65 & -1.10 & 1.47 \\
-0.02 & 0.55 & 1.07 & -1.71 \\
-2.31 & -0.89 & -0.83 & -0.46 \\
--1.49 & 0.08 & -0.41 & 1.79 \\
-\end{bmatrix}
-$$
+
+\begin{displaymath}
+\tilde{X}^{*2} = \tilde{U}_2 diag(\tilde{d}_1, \tilde{d}_2) \tilde{V}'_2 =  `r m2l(utilde_2)` \times `r m2l(dtilde_2)` \times `r m2l(t(vtilde_2)) `
+\end{displaymath}
+
+\begin{displaymath}
+= `r m2l(xtilde_star2)`
+\end{displaymath}
 
 
 \textbf{Part f}  
