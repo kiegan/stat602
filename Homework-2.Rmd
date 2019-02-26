@@ -30,6 +30,37 @@ prob4p3_data <- prob4p3_data %>% select(Price, Size, Fireplace, `Bsmt Bath`, Lan
 
 ### Problem 4.4  
 
+\textbf{Part a}
+```{r, echo = FALSE, eval = TRUE, message=FALSE, warning=FALSE}
+library(cvTools)
+library(class)
+library(caret)
+glass <- read.table(file = "data/glass_data_4pt4.txt", sep = ",", strip.white = TRUE)[,-1]
+colnames(glass) <- c("RI","Na", "Mg", "Al", "Si","K","Ca","Ba","Fe","type")
+
+glass12 <- subset(x = glass, subset = type %in% c("1","2"))
+glass12$type <- as.factor(glass12$type)
+# glass12[,1:(ncol(glass12) - 1)] <- scale(x = glass12[,1:(ncol(glass12) - 1)], center = TRUE, scale = TRUE)
+
+k <- seq(from = 1, to = 20, by = 1)
+tune_par <- data.frame("k" = k)
+fitcontrol <- trainControl(method = "cv", number = 10)
+knn_results <- caret::train(form = type ~ ., 
+                            data = glass12, 
+                            method = "knn", 
+                            preProcess = c("center","scale"), 
+                            tuneGrid = tune_par,
+                            trControl = fitcontrol)
+
+knn_results
+```
+
+Based on 10-fold cross-validation, the accuracy is estimated to be highest when $k = 4$.
+
+\textbf{Part b}
+
+The classification rule $\hat{y} = 2 I\left[t(x) \geq k/2\right] + I\left[t(x) < k/2\right]$ is equivalent to $\hat{y} = 2 I\left[t(x)/k \geq 1/2\right] + I\left[t(x)/k < 1/2\right]$. Here, $t(x)/k$ is an estimate of $E\left[ \text{type} = 2|x \right] = P(\text{type} = 2|x)$. Thus, this is directly an estimate of a posterior class probability which accounts for the prior class probabilities. This means that no modification of kNN needs to be made to account for differing prior probabilities.
+
 ### Problem 5.1  
 
 ```{r prob5p1, echo = F, warning = F, message = F}
@@ -342,6 +373,56 @@ $$
 ## Problem 2  
 
 ### Part a  
+```{r, eval = TRUE, echo = FALSE, warning=FALSE, message=FALSE}
+library(wavelets)
+d3.4 <- read.csv(file = "data/data_3pt4.csv")
+
+haar_basis <- function(x,m)
+{
+  ## define the endpoints of the interval on which we desire the basis
+  a <- min(x)
+  b <- max(x)
+  
+  ## transform the x-values to be on (0,1)
+  xtrans <- (x - a)/b
+  
+  ## create father function
+  father <- function(x)
+  {
+    return(1 * ( (0 < x) & (x <= 1) ) )
+  }
+  
+  ## create mother function
+  mother <- function(x)
+  {
+    return(father(2*x) - father(2*x - 1))
+  }
+  
+  ## psi is a list where each element is a matrix corresponding to the basis functions corresponding to a specific m
+  ## X is the design matrix
+  psi <- list()
+  X <- matrix(nrow = length(x), ncol = 1)
+  for(i in 1:m)
+  {
+    psi[[m]] <- matrix(nrow = length(x), ncol = 2^m - 1)
+    for(j in 1:(2^m - 1))
+    {
+      psi[[m]][,j] <- sqrt(2^m) * mother(2^m * (xtrans - j/(2^m)))
+    }
+    if(m == 1){
+      X <- psi[[m]]
+    }
+    if(m > 1){
+      X <- cbind(X, psi[[m]])
+    }
+  }
+  
+  return(X)
+  
+}
+
+```
+
 
 ### Part b  
 
