@@ -555,7 +555,7 @@ xsi <- c(0.1, 0.3, 0.5, 0.7, 0.9)
 
 Xspline <- ns(x = d3.4$x, knots = xsi, intercept = TRUE, Boundary.knots = c(0,1))
 
-mod_spline <- lm(formula = d3.4$y ~ X - 1)
+mod_spline <- lm(formula = d3.4$y ~ Xspline - 1)
 
 plot(d3.4$x, d3.4$y, xlab = "x", ylab = "y")
 points(d3.4$x[order(d3.4$x)], mod_spline$fitted.values[order(d3.4$x)], type = "l")
