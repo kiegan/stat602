@@ -19,25 +19,119 @@ knitr::opts_chunk$set(fig.pos = 'H')
 library(tidyverse)
 library(gridExtra)
 library(knitr)
+library(cvTools)
+library(class)
+library(caret)
 ```
 
 ## Problem 1  
 
 ### Problem 4.3  
 
-```{r prob4p3, echo = F, warning = F, message = F}
-prob4p3_data <- read_csv("data/AmesHousingData.csv")
-prob4p3_data <- prob4p3_data %>% select(Price, Size, Fireplace, `Bsmt Bath`, Land)
+A table of RMSEs for 8-fold cross-validation can be found in \autoref{prob4p3}. 
 
+```{r, echo = F, warning = F, message = F}
+prob4p3_data <- read_csv("data/AmesHousingData.csv")
+prob4p3_data <- prob4p3_data %>% select(Price, Size, Fireplace, `Bsmt Bath`, Land) %>% mutate(Bsmt_Bath = `Bsmt Bath`) %>% select(-`Bsmt Bath`) %>% mutate(none = 1)
+
+trControl <- trainControl(method = "cv", number = 8)
+
+none_m <- caret::train(form = Price~none, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+size_m <- caret::train(form = Price~Size, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+fire_m <- caret::train(form = Price~Fireplace, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+bsmt_m <- caret::train(form = Price~Bsmt_Bath, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+land_m <- caret::train(form = Price~Land, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+size_fire_m <- caret::train(form = Price~Size + Fireplace, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE  
+
+size_bsmt_m <- caret::train(form = Price~Size + Bsmt_Bath, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+size_land_m <- caret::train(form = Price~Size + Land, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+fire_bsmt_m <- caret::train(form = Price~Fireplace + Bsmt_Bath, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+fire_land_m <- caret::train(form = Price~Fireplace + Land, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+bsmt_land_m <- caret::train(form = Price~Bsmt_Bath + Land, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+size_fire_bsmt_m <- caret::train(form = Price~Size + Fireplace + Bsmt_Bath, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+
+size_fire_land_m <- caret::train(form = Price~Size + Fireplace + Land, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+fire_bsmt_land_m <- caret::train(form = Price~Fireplace + Bsmt_Bath + Land, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+all_m <- caret::train(form = Price~Size + Fireplace + Bsmt_Bath + Land, data = prob4p3_data, 
+                       method = "lm", preProcess = c("center", "scale"), 
+                       metric = "RMSE", trControl = trControl)$results$RMSE
+
+#rec_obj <- recipe(Price~., data = prob4p3_data)
 ```
+
+\begin{table}[h]
+\centering
+\caption{8-fold CV Model RMSEs for Problem 4.3}
+\begin{tabular}{lc}
+\textbf{Model} & \textbf{8-fold CV RMSE} \\ \hline
+None & `r format(none_m, scientific = F)` \\ \hline
+Size & `r format(size_m, scientific = F)` \\ \hline
+Fireplace & `r format(fire_m, scientific = F)` \\ \hline
+Bsmt Bath & `r format(bsmt_m, scientific = F)` \\ \hline
+Land & `r format(land_m, scientific = F)` \\ \hline
+Size, Fireplace & `r format(size_fire_m, scientific = F)` \\ \hline
+Size, Bsmt Bath & `r format(size_bsmt_m, scientific = F)` \\ \hline
+Size, Land & `r format(size_land_m, scientific = F)` \\ \hline
+Fireplace, Bsmt Bath & `r format(fire_bsmt_m, scientific = F)` \\ \hline
+Fireplace, Land & `r format(fire_land_m, scientific = F)` \\ \hline
+Bsmt Bath, Land & `r format(bsmt_land_m, scientific = F)` \\ \hline
+Size, Fireplace, Bsmt Bath & `r format(size_fire_bsmt_m, scientific = F)` \\ \hline
+Size, Fireplace, Land & `r format(size_fire_land_m, scientific = F)` \\ \hline
+Fireplace, Bsmt Bath, Land & `r format(fire_bsmt_land_m, scientific = F)` \\ \hline
+Size, Fireplace, Bsmt Bath, Land & `r format(all_m, scientific = F)`\\ \hline
+\label{prob4p3}
+\end{tabular}
+\end{table}
+
+The lowest RMSE appears to be for the full model which includes Size, Fireplace, Bsmt Bath, and Land.  
+
+
 
 ### Problem 4.4  
 
 \textbf{Part a}
 ```{r, echo = FALSE, eval = TRUE, message=FALSE, warning=FALSE}
-library(cvTools)
-library(class)
-library(caret)
 glass <- read.table(file = "data/glass_data_4pt4.txt", sep = ",", strip.white = TRUE)[,-1]
 colnames(glass) <- c("RI","Na", "Mg", "Al", "Si","K","Ca","Ba","Fe","type")
 
@@ -95,6 +189,8 @@ The following are decompositions using the matrix
 \begin{displaymath}
 X = `r m2l(prob5p1_mat)`
 \end{displaymath}
+
+
 
 \textbf{Part a}  
 
