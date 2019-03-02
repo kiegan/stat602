@@ -692,7 +692,7 @@ points(d3.4$x[order(d3.4$x)], mod_spline$fitted.values[order(d3.4$x)], type = "l
 
 ```
 
-## Problem 4  
+## Problem 4  Nate 
 
 Note: This is Stat 602 HW3 from 2015 (problem 22)
 
@@ -700,9 +700,107 @@ Note: There is some crossover with 502X HW2 Q15(a) here.
 
 ### Part a   
 
+```{r, echo = FALSE, eval = TRUE, message=FALSE, warning=FALSE}
+x <- seq(from = 0, to = 1, by = 0.1)
+y <- c(0,2.5,2,0.5,0,-0.5,0,1.5,3.5,4.5,3.5)
+
+cubic_natspline_basis <- function(x, knots) 
+{
+  K <- length(knots)
+  H <- matrix(nrow = length(x), ncol = length(knots))
+  H[,1] <- 1
+  H[,2] <- x
+  for(i in 1:(K - 2))
+  {
+    H[,i + 2] <- (x - knots[i])^3 * (x - knots[i] > 0) + 
+      (knots[K] - knots[i])/(knots[K] - knots[K - 1]) * (x - knots[K - 1])^3 * (x - knots[K -1] > 0) + 
+      (knots[K - 1] - knots[i])/(knots[K] - knots[K - 1]) * (x - knots[K])^3 * (x - knots[K] > 0)
+  }
+  return(H)
+  
+}
+
+H <- cubic_natspline_basis(x = x, knots = x)
+
+print("Matrix H")
+H
+
+O <- matrix(nrow = length(x), ncol = length(x), data = 0)
+for(i in 3:(length(x)))
+{
+  for(j in 3:length(x))
+  {
+    if(i == j)
+    {
+      O[i,j] <- 12 * (x[length(x) - 1] - x[i])^2 * (x[length(x)] - x[i])
+    }
+    if(i < j)
+    {
+      O[i,j] <- 6 * (x[length(x) - 1] - x[j])^2 * (2 * x[length(x) - 1] + x[j] - 3*x[i]) + 
+        12*(x[length(x) - 1] - x[j]) * (x[length(x) - 1] - x[i]) * (x[length(x)] - x[length(x) - 1])
+    }
+    if(i > j)
+    {
+      O[i,j] <- 6 * (x[length(x) - 1] - x[i])^2 * (2 * x[length(x) - 1] + x[i] - 3*x[j]) + 
+        12*(x[length(x) - 1] - x[i]) * (x[length(x) - 1] - x[j]) * (x[length(x)] - x[length(x) - 1])
+    }
+  }
+}
+
+print("Matrix Omega")
+O
+
+K <- solve(t(H)) %*% O %*% solve(H)
+
+print("Matrix K")
+K
+```
+
+
 ### Part b  
 
+```{r, eval=TRUE, echo = FALSE, warning=FALSE, message=FALSE}
+ek <- eigen(x = K)
+# ek$values
+# ek$vectors
+
+plot(x = 1:11, ek$vectors[,1], type = "l", xlab = "row index", ylab = "Eigenvector coordinate values")
+points(x = 1:11, ek$vectors[,1])
+
+points(x = 1:11, ek$vectors[,2], pch = 2)
+points(x = 1:11, ek$vectors[,2], type = "l")
+
+points(x = 1:11, ek$vectors[,3], pch = 3)
+points(x = 1:11, ek$vectors[,3], type = "l")
+
+points(x = 1:11, ek$vectors[,4], pch = 4)
+points(x = 1:11, ek$vectors[,4], type = "l")
+
+points(x = 1:11, ek$vectors[,5], pch = 5)
+points(x = 1:11, ek$vectors[,5], type = "l")
+
+points(x = 1:11, ek$vectors[,6], pch = 6)
+points(x = 1:11, ek$vectors[,6], type = "l")
+
+points(x = 1:11, ek$vectors[,7], pch = 7)
+points(x = 1:11, ek$vectors[,7], type = "l")
+
+points(x = 1:11, ek$vectors[,8], pch = 8)
+points(x = 1:11, ek$vectors[,8], type = "l")
+
+points(x = 1:11, ek$vectors[,9], pch = 9)
+points(x = 1:11, ek$vectors[,9], type = "l")
+
+points(x = 1:11, ek$vectors[,10], pch = 10)
+points(x = 1:11, ek$vectors[,10], type = "l")
+
+points(x = 1:11, ek$vectors[,11], pch = 11)
+points(x = 1:11, ek$vectors[,11], type = "l")
+```
+
 ### Part c  
+
+
 
 ## Problem 5  
 
@@ -778,7 +876,7 @@ grid.arrange(plot_5df, plot_9df, ncol = 1)
 
 ### MARS (in earth)  
 
-## Problem 8  
+## Problem 8  Nate
 
 ### Part a  
 
