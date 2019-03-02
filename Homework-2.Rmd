@@ -676,8 +676,6 @@ points(x = d3.4$x[order(d3.4$x)], y = (X %*% beta3)[order(d3.4$x)], type = "l", 
 
 ## Problem 3  
 
-Note: This is Stat 602 HW3 from 2015 (problem 21)
-
 ```{r, eval = TRUE, echo = FALSE, warning=FALSE, message=FALSE}
 library(splines)
 d3.4 <- read.csv(file = "data/data_3pt4.csv")
@@ -693,10 +691,6 @@ points(d3.4$x[order(d3.4$x)], mod_spline$fitted.values[order(d3.4$x)], type = "l
 ```
 
 ## Problem 4  Nate 
-
-Note: This is Stat 602 HW3 from 2015 (problem 22)
-
-Note: There is some crossover with 502X HW2 Q15(a) here.  
 
 ### Part a   
 
@@ -803,8 +797,6 @@ points(x = 1:11, ek$vectors[,11], type = "l")
 
 
 ## Problem 5  
-
-Note: This is Stat 602 HW3 from 2015 (problem 23)
 
 ### Part a  
 
