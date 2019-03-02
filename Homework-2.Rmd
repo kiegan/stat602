@@ -22,6 +22,9 @@ library(knitr)
 library(cvTools)
 library(class)
 library(caret)
+library(elasticnet)
+library(earth)
+library(pls)
 ```
 
 ## Problem 1  
@@ -858,15 +861,75 @@ grid.arrange(plot_5df, plot_9df, ncol = 1)
 
 ## Problem 7  
 
-### kNN  
+A scatterplot matrix for the five different methods and the response can be seen in \autoref{wine-scat}.  
 
-### elastic net  
 
-### PCR  
+```{r, echo = F, warning = F, message = F, fig.cap = "\\label{wine-scat} A scatterplot matrix for the five different prediction methods in Problem 7."}
+wines <- read_delim("data/winequality-white.csv", delim = ";")
 
-### PLS  
 
-### MARS (in earth)  
+# k nearest neighbors
+wineControl <- trainControl(method = "cv", number = 10)
+
+wine_knn <- caret::train(form = quality~., data = wines, 
+                       method = "knn", preProcess = c("center", "scale"), 
+                       trControl = wineControl, 
+                       tuneLength = 20)
+
+preds_knn <- predict(wine_knn, newdata = wines)
+
+
+# elastic net
+wine_enet <- caret::train(form = quality~., data = wines, 
+                       method = "enet", preProcess = c("center", "scale"), 
+                       trControl = wineControl, 
+                       tuneLength = 20)
+
+preds_enet <- predict(wine_enet, newdata = wines)
+
+# principal components regression
+wine_pcr <- caret::train(form = quality~., data = wines, 
+                       method = "pcr", preProcess = c("center", "scale"), 
+                       trControl = wineControl, 
+                       tuneLength = 20)
+
+preds_pcr <- predict(wine_pcr, newdata = wines)
+
+
+# partial least squares 
+wine_pls <- caret::train(form = quality~., data = wines, 
+                       method = "pls", preProcess = c("center", "scale"), 
+                       trControl = wineControl, 
+                       tuneLength = 20)
+
+preds_pls <- predict(wine_pls, newdata = wines)
+
+
+# MARS
+#wine_mars <- caret::train(form = quality~., data = wines, 
+#                       method = "earth", preProcess = c("center", "scale"), 
+#                       trControl = wineControl, 
+#                       tuneLength = 20)
+
+#preds_mars <- predict(wine_mars, newdata = wines)
+#saveRDS(preds_mars, "data/preds_mars")
+
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_mars <- readRDS("data/preds_mars")
+
+wine_preds <- data.frame(quality = wines$quality, knn = preds_knn, 
+                         enet = preds_enet, pcr = preds_pcr,
+                         pls = preds_pls, mars = preds_mars[,1])
+
+wine_cor_mat <- cor(wine_preds)
+pairs(wine_preds)
+```
+
+A correlation matrix can be seen below:  
+```{r, echo = F, warning = F, message = F}
+wine_cor_mat <- cor(wine_preds)
+wine_cor_mat
+```
 
 ## Problem 8  Nate
 
