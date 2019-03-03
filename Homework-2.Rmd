@@ -693,6 +693,7 @@ points(d3.4$x[order(d3.4$x)], mod_spline$fitted.values[order(d3.4$x)], type = "l
 
 ```
 
+
 ## Problem 4  Nate 
 
 ### Part a   
@@ -803,7 +804,125 @@ points(x = 1:11, ek$vectors[,11], type = "l")
 
 ### Part a  
 
+In order to compute and plot effective degrees of freedom, we need to compute the matrix 
+
+$$
+L_{\lambda} = 
+\begin{bmatrix}
+l'(x_1) \\
+\vdots \\
+l'(x_{11}) \\
+\end{bmatrix}
+$$
+where $l'(x_i) = (1, x_i) (\mathbf{B}' \mathbf{W}(x_i)\mathbf{B})^{-1} \mathbf{B}' \mathbf{W}(x_i)$, where 
+
+$$
+\mathbf{B} = 
+\begin{bmatrix}
+1 & x_1 \\
+1 & x_2 \\
+\vdots & \vdots \\
+1 & x_{11} \\
+\end{bmatrix}, \quad
+\mathbf{W} = diag(K_{\lambda}(x_i, x_1), \dots, K_{\lambda}(x_i, x_N))
+$$
+
+A plot can be seen in \autoref{prob5}. The corresponding table for specific degrees of freedom can be seen in \autoref{prob5table}. 
+
+
+```{r, echo = F, warning = F, message = F, fig.cap ="\\label{prob5} A plot of effective degrees of freedom as a function of Lambda values for Problem 5.", fig.height = 3}
+prob5_xs <- c(0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1)
+
+prob5_bmat <- matrix(c(rep(1, 11), prob5_xs), nrow = 11, byrow = F)
+
+prob5_kernel <- function(lambda, x_0, x){
+  val <- (x_0 - x)/lambda
+  pnorm(val)
+}
+
+calc_wmat <- function(lambda, x_0, x_vec){
+  mat <- c()
+  for(i in 1:length(x_vec)){
+    kern <- prob5_kernel(lambda = lambda, x_0 = x_0, x = x_vec[i])
+    mat <- c(mat, kern)
+  }
+  return(diag(mat))
+}
+
+calc_littlel <- function(lambda, x_0, x_vec){
+  start <- c(1, x_0)
+  littlel <- start %*% solve(t(prob5_bmat) %*% calc_wmat(lambda, x_0, x_vec) %*% prob5_bmat) %*% t(prob5_bmat) %*% calc_wmat(lambda, x_0, x_vec)
+  return(littlel)
+}
+
+eff_df <- function(lambda){
+  l_lambda <- matrix(NA, nrow = 11, ncol = 11)
+  for(i in 1:length(prob5_xs)){
+    l_lambda[i,] <- calc_littlel(lambda, x_0 = prob5_xs[i], x_vec = prob5_xs)
+  }
+  trace <- sum(diag(l_lambda))
+  return(trace)
+}
+
+lambdas <- seq(.02, 10, length.out = 1000)
+
+prob5_df <- data.frame(lambda = lambdas) %>% mutate(eff_df = purrr::map_dbl(lambda, .f = function(lambdas){
+  eff_df(lambdas)
+}))
+
+
+df_5 <- prob5_df$lambda[which.min(abs(prob5_df$eff_df - 5))]
+df_4 <- prob5_df$lambda[which.min(abs(prob5_df$eff_df - 4))]
+df_3 <- prob5_df$lambda[which.min(abs(prob5_df$eff_df - 3))]
+df_2.5 <- prob5_df$lambda[which.min(abs(prob5_df$eff_df - 2.5))]
+lambda_4 <- 0.0999
+
+prob5_df %>% ggplot() + 
+  geom_line(aes(x = log(lambda), y = eff_df)) + theme_bw() + 
+  labs(x = "Lambda value (log scale)", y = "Effective Degrees of Freedom")
+```
+
+\begin{table}[h]
+\centering
+\caption{Values of $\lambda$ for effective degrees of freedom.}
+\begin{tabular}{lc}
+\textbf{Effective DF} & $\lambda$ value \\ \hline
+2.5 & `r df_2.5` \\ \hline
+3 & `r df_3`\\ \hline
+4 & `r df_4`\\ \hline
+5 & `r df_5`\\ \hline
+\label{prob5table}
+\end{tabular}
+\end{table}
+
+
+\newpage
+
 ### Part b  
+
+First, note that we are working with $\lambda =$ `r lambda_4`, and our $L_{\lambda}$ matrix is:
+```{r, echo = F, warning = F, message = F}
+calc_lambda <- function(lambda){
+  l_lambda <- matrix(NA, nrow = 11, ncol = 11)
+  for(i in 1:length(prob5_xs)){
+    l_lambda[i,] <- calc_littlel(lambda, x_0 = prob5_xs[i], x_vec = prob5_xs)
+  }
+  return(l_lambda)
+}
+
+L_lambda <- calc_lambda(lambda = lambda_4)
+
+## waiting on Question 4 part C matrix for this! 
+round(L_lambda, 2)
+
+
+#\begin{displaymath}
+#`r m2l(round(L_lambda,2))`
+#\end{displaymath}
+```
+
+
+
 
 ## Problem 6  
 
