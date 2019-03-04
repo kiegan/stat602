@@ -931,13 +931,43 @@ L_lambda <- calc_lambda(lambda = lambda_4)
 
 ## waiting on Question 4 part C matrix for this! 
 round(L_lambda, 2)
+```
 
+And our $S_{\lambda}$ matrix is:  
+
+```{r, echo = F, warning = F, message = F}
+
+S_lambda <- H %*% solve(a = t(H) %*% H + 0.0059 * O) %*% t(H)
+round(S_lambda, 2)
 
 #\begin{displaymath}
 #`r m2l(round(L_lambda,2))`
 #\end{displaymath}
 ```
 
+
+Thus, the 11x11 matrix difference is:  
+
+```{r, echo = F, warning = F, message = F}
+round(S_lambda - L_lambda, 2)
+```
+
+The described plot can be seen in \autoref{prob5b}.  
+
+```{r, echo = F, warning = F, message = F, fig.cap = "\\label{prob5b} Plot comparing the first, third, and fifth columns of the S_lambda and L_lambda matrices for 4 effective degrees of freedom. This if for problem 5 part b.", fig.height = 3}
+matrix_comp <- data.frame(S_col1 = S_lambda[,1], S_col3 = S_lambda[,3], S_col5 = S_lambda[,5],
+                          L_col1 = L_lambda[,1], L_col3 = L_lambda[,3], L_col5 = L_lambda[,5])
+
+matrix_comp %>% 
+  mutate(x = 1:11) %>% 
+  gather(1:6, key = "Matrix_Column", value = "Value") %>%
+  separate(Matrix_Column, c("Matrix", "Column"), sep = "_") %>%
+  ggplot() + geom_line(aes(x = x, y = Value, color = factor(Column), linetype = factor(Matrix))) + 
+  geom_point(aes(x = x, y = Value, color = factor(Column)), pch = 1) + 
+  theme_bw() + 
+  labs(title = "Columns 1, 3, and 5 For S and L matrices.")
+
+```
 
 
 
