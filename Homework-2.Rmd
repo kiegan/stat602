@@ -800,7 +800,24 @@ points(x = 1:11, ek$vectors[,11], type = "l")
 
 ### Part c  
 
+```{r, eval = TRUE, echo = FALSE, warning=FALSE, message=FALSE}
+lambda <- seq(from = 0.001, to = 2, by = 0.01)
+eff_df <- numeric(length = length(lambda))
+for(i in 1:length(lambda))
+{
+  eff_df[i] <- sum(diag(H %*% solve(a = t(H) %*% H + lambda[i] * O) %*% t(H)))
+}
 
+plot(x = lambda, y = eff_df, xlab = "lambda", ylab = "Effective DF")
+
+sum(diag(H %*% solve(a = t(H) %*% H + 0.0012 * O) %*% t(H))) ## df approximately = 5
+sum(diag(H %*% solve(a = t(H) %*% H + 0.0059 * O) %*% t(H))) ## df approximately = 4
+sum(diag(H %*% solve(a = t(H) %*% H + 0.0375 * O) %*% t(H))) ## df approximately = 3
+sum(diag(H %*% solve(a = t(H) %*% H + 0.12 * O) %*% t(H))) ## df approximately = 2.5
+
+```
+
+The sequence of effective degrees of freedom $2.5, 3, 4, 5$ approximately corresponds to the sequence of $\lambda$ values $0.0012, 0.0059, 0.0375, 0.12$.
 
 ## Problem 5  
 
