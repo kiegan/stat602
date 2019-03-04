@@ -1,0 +1,46 @@
+---
+title: "hw2_errors"
+author: "Nate Garton"
+date: "March 4, 2019"
+output: pdf_document
+---
+
+Consider the Gram-Schmidt process using the \(L_2\) inner product
+\(\int{f(x)g(x)dx}\) on functions \(f_c(x) = e^{ -\frac{(c - x)^2}{2}}\)
+for \(c = x_1, x_2, x_3\). Define
+
+\begin{align} 
+u_1(x) &= f_{x_1}(x) / \left[ \int{f_{x_1}^2(x) dx} \right] ^{1/2} \\
+&= e^ { -\frac{(x_1 - x)^2}{2}} / \left[ \int{ e^{ -(x_1 - x)^2 } dx} \right] ^{1/2} \\
+&= \pi^{1/4} e^{ -\frac{(x_1 - x)^2}{2}}.
+\end{align}
+
+Next, define
+
+\begin{align}
+u_2(x) &= \frac{f_{x_2}(x) - \int{f_{x_2}(x)u_1(x) dx} u_1(x)}{\left[ \int{ (f_{x_2}(x) - \int{f_{x_2}(x)u_1(x) dx} u_1(x))^2 } \right]^{1/2}} \\
+&= \frac{f_{x_2}(x) - (\pi^{1/4}e^{\frac{1}{4}(x_1 + x_2)^2 - 2 x_1 x_2}) \int{e^{-\frac{1}{2 * 1/2} (x - 1/2(x_1 + x_2)^2)} dx} * u_1(x)}{\left[ \int{ (f_{x_2}(x) - (\pi^{1/4}e^{\frac{1}{4}(x_1 + x_2)^2 - 2 x_1 x_2}) \int{e^{-\frac{1}{2 * 1/2} (x - 1/2(x_1 + x_2)^2)} dx} * u_1(x))^2 } \right]^{1/2}} \\
+&= \frac{f_{x_2}(x) - (\pi^{1/4}e^{\frac{1}{4}(x_1 + x_2)^2 - 2 x_1 x_2}) \pi^{1/2} \pi^{1/4} e^{ -\frac{(x_1 - x)^2}{2}}}{\left[ \int{ (f_{x_2}(x) - (\pi^{1/4}e^{\frac{1}{4}(x_1 + x_2)^2 - 2 x_1 x_2}) \pi^{1/2} \pi^{1/4} e^{ -\frac{(x_1 - x)^2}{2}})^2 } \right]^{1/2}} \\
+&= \frac{e^{-(x_2 - x)^2}/2}{\pi^{1/2} - 2q(x_1, x_2) \sqrt{2\pi} + q(x_1, x_2)},
+\end{align}
+
+where \(q(c_1, c_2) = \pi e^{\frac{1}{4} (c_1 + c_2)^2 - 2c_1c_2}\).
+
+Following the same procedure for the third function \(u_3(x)\), we get
+
+\begin{align}
+u_3(x) &= \frac{f_{x_3}(x) - \int{f_{x_3}(x)u_2(x)dx} * u_2(x) - \int{f_{x_3}(x)u_1(x)dx} * u_1(x)}{\left[ \int{(f_{x_3}(x) - \int{f_{x_3}(x)u_2(x)dx} * u_2(x) - \int{f_{x_3}(x)u_1(x)dx} * u_1(x))^2} \right]^{1/2}} \\
+&= \frac{f_{x_3}(x) - \int{f_{x_3}(x)u_2(x)dx} * u_2(x) - \int{f_{x_3}(x)u_1(x)dx} * u_1(x)} {v(x_1,x_2,x_3)} \\
+&= \frac{f_{x_3}(x) - \frac{\pi^{-1/2}q(x_2,x_3) e^{-(x_2 - x)^2/2} }{\pi^{1/2} + 2 q(x_2,x_3)\sqrt{2\pi} + q(x_2,x_3)} - 1(x_1,x_3) e^{-(x_1 - x)^2 / 2} } {v(x_1,x_2,x_3)}, 
+\end{align}
+
+where $v(x_1,x_2,x_3) = \pi^{1/2} + \left( \frac{q(x_2,x_3)}{\pi^{1/2} + 2 q(x_2,x_3) \sqrt{2\pi} + q(x_2,x_3)} \right)^2 + q(x_1, x_3)^2 \pi^{1/2} - 2 \frac{\pi^{-1/2} q(x_2,x_3)q(x_1,x_3)}{\pi^{1/2} + 2q(x_2,x_3)\sqrt{2\pi} + q(x_2,x_3)} \pi^{-1/2}q(x_1,x_2) -2\frac{\pi^{-1/2} q(x_2,x_3)}{\pi^{1/2} + 2q(x_2,x_3)\sqrt{2\pi} + q(x_2,x_3)}\pi^{-1/2}q(x_2,x_3) - 2q(x_1,x_3) \pi^{-1/2}q(x_1,x_3)$.
+
+If we consider the kernel inner product, the inner product expressions are much nicer. Using the kernel inner product, we wind up with 
+
+\begin{align}
+u_1(x) &= f_{x_1}(x) \\
+u_2(x) &= \frac{f_{x_2}(x) - K(x_1,x_2)u_1(x)}{|1 - K(x_1,x_2)|} \\
+u_3(x) &= \frac{f_{x_3}(x) - \langle f_{x_3}(x), u_2(x) \rangle u_2(x) - \langle f_{x_3}(x), u_1(x) \rangle u_1(x) }{\langle f_{x_3}(x) - \langle f_{x_3}(x), u_2(x) \rangle u_2(x) - \langle f_{x_3}(x), u_1(x) \rangle u_1(x) , f_{x_3}(x) - \langle f_{x_3}(x), u_2(x) \rangle u_2(x) - \langle f_{x_3}(x), u_1(x) \rangle u_1(x)  \rangle}
+\end{align}
+
