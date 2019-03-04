@@ -694,7 +694,7 @@ points(d3.4$x[order(d3.4$x)], mod_spline$fitted.values[order(d3.4$x)], type = "l
 ```
 
 
-## Problem 4  Nate 
+## Problem 4
 
 ### Part a   
 
@@ -1097,7 +1097,7 @@ wine_cor_mat <- cor(wine_preds)
 wine_cor_mat
 ```
 
-## Problem 8  Nate
+## Problem 8
 
 ### Part a  
 
@@ -1144,12 +1144,115 @@ These are not the same functions, as the inner products are different. However, 
 
 ### Part b  
 
+```{r, eval = TRUE, echo = FALSE}
+cov_fun_sqrd_exp <- function(x1, x2, cov_par)
+{
+  sigma <- cov_par$sigma
+  l <- cov_par$l
+  
+  return(sigma^2 * exp(-1/(2*l^2) * (x1 - x2)^2))
+}
 
+make_cov_mat <- function(x, x_pred, cov_fun, cov_par, tau = 0)
+{
+  xfull <- rbind(x,x_pred)
+  temp <- matrix(nrow = nrow(xfull), ncol = nrow(xfull))
+  for(i in 1:nrow(xfull))
+  {
+    for(j in 1:nrow(xfull))
+    {
+      temp[i,j] <- cov_fun(xfull[i,], xfull[j,], cov_par) + 1*(i==j)*tau^2
+    }
+  }
+  return(temp)
+}
 
+G_uncentered <- make_cov_mat(x = as.matrix(x, ncol = 1), x_pred = numeric(), cov_fun = cov_fun_sqrd_exp, cov_par = list("sigma" = 1, "l" = 1))
+
+x <- seq(from = 0, to = 1, by = 0.1)
+y <- c(0,2.5,2,0.5,0,-0.5,0,1.5,3.5,4.5,3.5)
+G <- matrix(nrow = length(x), ncol = length(x))
+for(i in 1:nrow(G))
+{
+  for(j in 1:ncol(G))
+  {
+    G[i,j] <- cov_fun_sqrd_exp(x1 = x[i], x2 = x[j], cov_par = list("sigma" = 1, "l" = 1)) - 
+      (1/11) * sum(G_uncentered[i,]) - (1/11) * sum(G_uncentered[j,]) + (1/11^2) * sum(G_uncentered)
+      
+  }
+}
+
+print("Centered Gram Matrix")
+G
+```
 ### Part c  
+
+```{r, eval = TRUE, echo = FALSE}
+eG <- eigen(x = G)
+xseq <- seq(from = 0, to = 1, by = 0.01)
+
+sfun <- matrix(nrow = 11, ncol = length(xseq))
+center_fun <- function(x1, x2)
+{
+  temp <- numeric(length(x2))
+  for(i in 1:length(temp))
+  {
+    temp[i] <- cov_fun_sqrd_exp(x1 = x1, x2 = x2[i], cov_par = list("sigma" = 1, "l" = 1))
+  }
+  return(
+    sum(temp)
+  )
+}
+
+for(i in 1:nrow(sfun))
+{
+  for(j in 1:ncol(sfun))
+  {
+    sfun[i,j] <- cov_fun_sqrd_exp(x1 = x[i], x2 = xseq[j],cov_par = list("sigma" = 1, "l" = 1)) - 
+      (1/11) * center_fun(x1 = xseq[j], x2 = x)
+  }
+}
+
+
+plot(x = xseq, y = t(sfun) %*% eG$vectors[,1], type = "l", xlab = "x", ylab = "Kernel Principal Component Functions", lty = 1)
+# points(x = xseq, y = sfun[1,])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,2], type = "l",  lty = 2)
+# points(x = xseq, y = sfun[2,])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,3], type = "l",  lty = 3)
+# points(x = xseq, y = sfun[3,])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,4], type = "l",  lty = 4)
+# points(x = xseq, y = sfun[4,])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,5], type = "l",  lty = 5)
+# points(x = xseq, y = sfun[5,])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,6], type = "l",  lty = 6)
+# points(x = xseq, y = sfun[6,])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,7], type = "l", lty = 1)
+points(x = xseq, y = t(sfun) %*% eG$vectors[,7])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,8], type = "l", lty = 2)
+points(x = xseq, y = t(sfun) %*% eG$vectors[,8])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,9], type = "l", lty = 3)
+points(x = xseq, y = t(sfun) %*% eG$vectors[,9])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,10], type = "l", lty = 4)
+points(x = xseq, y = t(sfun) %*% eG$vectors[,10])
+
+points(x = xseq, y = t(sfun) %*% eG$vectors[,11], type = "l", lty = 5)
+points(x = xseq, y = t(sfun) %*% eG$vectors[,11])
+```
+
+As the eigenvalues decrease, the kernal principal components get closer to the zero function.
 
 ### Part d  
 
+This was Nate's problem which he was unable to complete.
 
 
 
