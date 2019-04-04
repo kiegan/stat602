@@ -45,8 +45,11 @@ mu_c1 <- apply(X = as.matrix(train_c1[,-c(1,2)]), MARGIN = 2, FUN = mean)
 mu_c0 <- apply(X = as.matrix(train_c0[,-c(1,2)]), MARGIN = 2, FUN = mean)
 
 hist(mu_c0) ## looks like one mean is suspiciously far to the left? 
-which.min(mu_c0)
+which.min(mu_c0[-c(34,66)])
 hist(train_c0$`33`)
+hist(train_c0$`65`)
+hist(train_c0$`24`)
+mean(train_c0$`24`)
 
 aha <- t.test(x = train_c0$`33`, mu = 0) ## column 33 has a nonzero mean
 aha$p.value * 300
@@ -67,12 +70,12 @@ sd(mu_c0[-34] / sqrt(1/nrow(train_c0)))
 sd(mu_c1 / sqrt(1/nrow(train_c1)))
 
 ## looks like the overall mean distributions are a little different location-wise
-t.test(x = mu_c0[-34] / sqrt(1/nrow(train_c0)), y = mu_c1 / sqrt(1/nrow(train_c1)), mu = 0, var.equal = TRUE) 
-t.test(x = mu_c0[-34] / sqrt(1/nrow(train_c0)), y = mu_c1[-34] / sqrt(1/nrow(train_c1)), mu = 0, var.equal = TRUE, paired = TRUE) 
+t.test(x = mu_c0[-c(34,66)] / sqrt(1/nrow(train_c0)), y = mu_c1[-c(34,66)] / sqrt(1/nrow(train_c1)), mu = 0, var.equal = TRUE) 
+t.test(x = mu_c0[-c(34,66)] / sqrt(1/nrow(train_c0)), y = mu_c1[-c(34,66)] / sqrt(1/nrow(train_c1)), mu = 0, var.equal = TRUE, paired = TRUE) 
 
 ## there are a couple differences between means that exceed normal range
-hist(mu_c0 - mu_c1)
-which.min(mu_c0[-34] - mu_c1[-34]) ## one of them is for "33" but the other is for "65"
+hist(mu_c0[-c(34,66)] - mu_c1[-c(34,66)])
+which.min(mu_c0 - mu_c1) ## one of them is for "33" but the other is for "65"
 mean(train_c0$`65`)
 mu_c0[66]
 
@@ -98,6 +101,27 @@ ks.test(x = mu_c1, y = "pnorm", mean = 0, sd = sqrt(1/nrow(train_c1)))
 shapiro.test(x = (mu_c1 - mean(mu_c1)) / sqrt(var(mu_c1)))
 shapiro.test(x = (mu_c1 - mean(mu_c1)) / sqrt(1/nrow(train_c1)))
 
+## look at distribution of differences 
+## theoretical variance of a difference is 1/90 + 1/160
+diffs <- mu_c0[-c(34,66)] - mu_c1[-c(34,66)]
+var(diffs)
+1/90 + 1/160
+var(diffs) / (1/90 + 1/160)
+299 * var(diffs) / (1/90 + 1/160)
+
+## sample variance of difference of means p-value
+1 - pchisq(q = ((300 - 1)/(1/90 + 1/160)) * var(diffs) , df = 300 - 1)
+
+
+## distribution of differences 
+qqnorm(y = (diffs - mean(diffs)) / sqrt(var(diffs)))
+abline(a = 0, b = 1)
+ks.test(x = (diffs - mean(diffs)) / sqrt(var(diffs)), y = "pnorm", mean = 0, sd = 1)
+shapiro.test(x = (diffs - mean(diffs)) / sqrt(var(diffs)))
+shapiro.test(x = (diffs - mean(diffs)) / sqrt(1/90 + 1/160))
+
+
+
 ## do a bunch of t-tests comparing column means between classes
 ttests <- list()
 tstats <- numeric()
@@ -111,6 +135,12 @@ for(i in 1:ncol(train[,-c(1,2)]))
   pvals[i] <- ttests[[i]]$p.value
 }
 
+sort(pvals)
+order(pvals)
+sum(pvals * 300 < 0.05)
+
+ttests[[25]]
+ttests[[25]]$p.value * 300
 ttests[[34]]
 ttests[[66]]
 hist(tstats)
@@ -181,13 +211,47 @@ mean(d_c1)
 
 
 ## do likelihood ratio test for whether all variables in a class have the same mean
+## it seems like *maybe* means are slightly different, but it's not easy to tell which...
 library(mvtnorm)
-lrstat0.1 <- -2 * (sum( apply(X = train_c0[,-c(1,2, 34 + 2)], MARGIN = c(1,2), FUN = dnorm, log = TRUE, mean = mean(mu_c0[-34]), sd = 1 ) ) - 
-                    sum( apply(X = train_c0[,-c(1,2, 34 + 2)] - matrix(rep(x = mu_c0[-34], times = nrow(train_c0)), nrow = nrow(train_c0), byrow = TRUE), MARGIN = 2, FUN = dmvnorm, sigma = diag(nrow(train_c0)), log = TRUE) )) 
+lrstat0.1 <- -2 * (sum( apply(X = train_c0[,-c(1,2, 34 + 2, 66 + 2)], MARGIN = c(1,2), FUN = dnorm, log = TRUE, mean = mean(mu_c0[-c(34,66)]), sd = sqrt(var(as.numeric(as.matrix(train_c0[,-c(1,2,34,66)])))
+) ) ) - 
+                    sum( apply(X = train_c0[,-c(1,2, 34 + 2, 66 + 2)] - matrix(rep(x = mu_c0[-c(34,66)], times = nrow(train_c0)), nrow = nrow(train_c0), byrow = TRUE), MARGIN = 2, FUN = dmvnorm, sigma = var(as.numeric(as.matrix(train_c0[,-c(1,2,34,66)]))
+) * diag(nrow(train_c0)), log = TRUE) )) 
 lrstat0.1
-1 - pchisq(q = lrstat0.1, df = 299 - 1)
+1 - pchisq(q = lrstat0.1, df = 298 - 1)
 
-lrstat1.1 <- -2 * (sum( apply(X = train_c1[,-c(1,2)], MARGIN = c(1,2), FUN = dnorm, log = TRUE, mean = mean(mu_c1), sd = 1 ) ) - 
-                     sum( apply(X = train_c1[,-c(1,2)] - matrix(rep(x = mu_c1, times = nrow(train_c1)), nrow = nrow(train_c1), byrow = TRUE), MARGIN = 2, FUN = dmvnorm, sigma = diag(nrow(train_c1)), log = TRUE) )) 
+lrstat1.1 <- -2 * (sum( apply(X = train_c1[,-c(1,2, 34 + 2, 66 + 2)], MARGIN = c(1,2), FUN = dnorm, log = TRUE, mean = mean(mu_c1[-c(34,66)]), sd = sqrt(var(as.numeric(as.matrix(train_c1[,-c(1,2,34,66)])))
+) ) ) - 
+                     sum( apply(X = train_c1[,-c(1,2, 34 + 2, 66 + 2)] - matrix(rep(x = mu_c1[-c(34,66)], times = nrow(train_c1)), nrow = nrow(train_c1), byrow = TRUE), MARGIN = 2, FUN = dmvnorm, sigma = var(as.numeric(as.matrix(train_c1[,-c(1,2,34,66)])))
+ * diag(nrow(train_c1)), log = TRUE) )) 
 lrstat1.1
-1 - pchisq(q = lrstat1.1, df = 300 - 1)
+1 - pchisq(q = lrstat1.1, df = 288 - 1)
+
+## What if column means were generated from a normal with separate means for the two classes 
+var(as.numeric(as.matrix(train_c0[,-c(1,2,34,66)])))
+var(as.numeric(as.matrix(train_c1[,-c(1,2,34,66)])))
+
+## create likelihood ratio based on multivariate normal modeling where variables "33", "65" have unique means but 
+##  remaining means are the same within a class
+mu_c0_33 <- mean(train_c0$`33`)
+mu_c0_65 <- mean(train_c0$`65`)
+mu_c1_33 <- mean(train_c1$`33`)
+mu_c1_65 <- mean(train_c1$`65`)
+
+mu_c0_remain <- mean(apply(X = train_c0[,-c(34 + 2,66 + 2)], MARGIN = 2, FUN = mean))
+mu_c1_remain <- mean(apply(X = train_c1[,-c(34 + 2,66 + 2)], MARGIN = 2, FUN = mean))
+mu_c0_remain
+mu_c1_remain
+
+mod_mu_c0 <- numeric()
+mod_mu_c1 <- numeric()
+for(i in 1:300)
+{
+  mod_mu_c0 [i] <- ifelse(test = i == 34, yes = mu_c0_33, 
+                      no = ifelse(test = i == 66, yes = mu_c0_65, no = mu_c0_remain))
+  mod_mu_c1[i] <- ifelse(test = i == 34, yes = mu_c1_33, 
+                      no = ifelse(test = i == 66, yes = mu_c1_65, no = mu_c1_remain))
+}
+mod_mu_c0
+mod_mu_c1
+
