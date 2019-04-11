@@ -1,0 +1,43 @@
+---
+title: "Stat 602 Homework 3"
+author: "Kiegan Rice and Nate Garton"
+date: "Due ??"
+output: 
+  pdf_document: 
+    fig_caption: yes
+header-includes: \usepackage{float, mathtools, accents}
+---
+
+
+\newcommand{\dbtilde}[1]{\accentset{\approx}{#1}}
+
+```{r global_options, echo = F, include = FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
+
+```{r packages, echo = F, warning = F, message = F}
+library(tidyverse)
+library(gridExtra)
+library(knitr)
+library(cvTools)
+library(class)
+library(caret)
+library(elasticnet)
+library(earth)
+library(pls)
+```
+
+# Problem 9  
+kiegan will do this problem 
+
+# Problem 10  
+nate will do this problem  
+
+# Problem 11  
+kiegan will do this problem
+
+# Problem 12  
+nate will do this problem  
+
+
+

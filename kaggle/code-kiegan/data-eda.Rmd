@@ -295,10 +295,30 @@ train <- read_csv("../data/train.csv")
 
 library(glmnet)
 
+f1 <- apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feat,
+            mu0 = mod_mu_c0, mu1 = mod_mu_c1, prior_c0 = 90/250, prior_c1 = 160/250)
+
+train$nate_lr <- f1
 lasso_train <- cv.glmnet(x = as.matrix(train[,3:302]), y = train$target, family = "binomial", alpha = 1, nfolds = 10)
+s = lasso_train$lambda.min
+lasso.coef = predict(lasso_train, s = s, type = "coefficients")
+
+test <- read_csv("../data/test.csv")
+f2 <- apply(X = test[,-1], MARGIN = 1, FUN = nates_normal_loglr_feat,
+            mu0 = mod_mu_c0, mu1 = mod_mu_c1, prior_c0 = 90/250, prior_c1 = 160/250)
+
+test$nate_lr <- f2
+
+preds <- predict(lasso_train, s = s, newx = as.matrix(test[,-1]), type = "response")
+
+
+submission <- data.frame(id = test$id, target = as.vector(preds))
+write_csv(submission, "lasso_nate_lr_submission_2.csv")
 ```
 
 
+```{r}
+```
 
 
 
