@@ -215,15 +215,15 @@ mean(d_c1)
 library(mvtnorm)
 lrstat0.1 <- -2 * (sum( apply(X = train_c0[,-c(1,2, 34 + 2, 66 + 2)], MARGIN = c(1,2), FUN = dnorm, log = TRUE, mean = mean(mu_c0[-c(34,66)]), sd = sqrt(var(as.numeric(as.matrix(train_c0[,-c(1,2,34,66)])))
 ) ) ) - 
-                    sum( apply(X = train_c0[,-c(1,2, 34 + 2, 66 + 2)] - matrix(rep(x = mu_c0[-c(34,66)], times = nrow(train_c0)), nrow = nrow(train_c0), byrow = TRUE), MARGIN = 2, FUN = dmvnorm, sigma = var(as.numeric(as.matrix(train_c0[,-c(1,2,34,66)]))
-) * diag(nrow(train_c0)), log = TRUE) )) 
+                    sum( apply(X = train_c0[,-c(1,2, 34 + 2, 66 + 2)] - matrix(rep(x = mu_c0[-c(34,66)], times = nrow(train_c0)), nrow = nrow(train_c0), byrow = TRUE), MARGIN = 1, FUN = dmvnorm, sigma = var(as.numeric(as.matrix(train_c0[,-c(1,2,34,66)]))
+) * diag(ncol(train_c0) - 2 - 2), log = TRUE) )) 
 lrstat0.1
 1 - pchisq(q = lrstat0.1, df = 298 - 1)
 
 lrstat1.1 <- -2 * (sum( apply(X = train_c1[,-c(1,2, 34 + 2, 66 + 2)], MARGIN = c(1,2), FUN = dnorm, log = TRUE, mean = mean(mu_c1[-c(34,66)]), sd = sqrt(var(as.numeric(as.matrix(train_c1[,-c(1,2,34,66)])))
 ) ) ) - 
-                     sum( apply(X = train_c1[,-c(1,2, 34 + 2, 66 + 2)] - matrix(rep(x = mu_c1[-c(34,66)], times = nrow(train_c1)), nrow = nrow(train_c1), byrow = TRUE), MARGIN = 2, FUN = dmvnorm, sigma = var(as.numeric(as.matrix(train_c1[,-c(1,2,34,66)])))
- * diag(nrow(train_c1)), log = TRUE) )) 
+                     sum( apply(X = train_c1[,-c(1,2, 34 + 2, 66 + 2)] - matrix(rep(x = mu_c1[-c(34,66)], times = nrow(train_c1)), nrow = nrow(train_c1), byrow = TRUE), MARGIN = 1, FUN = dmvnorm, sigma = var(as.numeric(as.matrix(train_c1[,-c(1,2,34,66)])))
+ * diag(ncol(train_c1) - 2 - 2), log = TRUE) )) 
 lrstat1.1
 1 - pchisq(q = lrstat1.1, df = 288 - 1)
 
@@ -255,3 +255,33 @@ for(i in 1:300)
 mod_mu_c0
 mod_mu_c1
 
+## do likelihood ratio on columns left in by lasso (lambda min) on second model
+mu_vec_lasso1_c1 <- numeric()
+mu_vec_lasso1_c0 <- numeric()
+sd_vec_lasso1_c1 <- numeric()
+sd_vec_lasso1_c0 <- numeric()
+
+counter <- 0
+ones_left <- c(30,43,73,80,82,90,91,114,117,133,168,189,194,199,217,221,226,252,258,295,298)
+for(i in c(30,43,73,80,82,90,91,114,117,133,168,189,194,199,217,221,226,252,258,295,298))
+{
+  counter <- counter + 1
+  mu_vec_lasso1_c0[counter] <- mean(train_c0[,i])
+  mu_vec_lasso1_c1[counter] <- mean(train_c0[,i])
+  sd_vec_lasso1_c0[counter] <- sd(train_c0[,i])
+  sd_vec_lasso1_c1[counter] <- sd(train_c1[,i])
+}
+
+lrstat0.2 <- -2 * (sum( apply(X = train_c0[,ones_left], MARGIN = c(1,2), FUN = dnorm, log = TRUE, mean = mean(mu_c0[ones_left + 1]), sd = sqrt(var(as.numeric(as.matrix(train_c0[,ones_left + 2 + 1])))
+) ) ) - 
+  sum( apply(X = train_c0[,ones_left + 2 + 1] - matrix(data = rep(x = mu_c0[ones_left + 1], times = nrow(train_c0)), nrow = nrow(train_c0), byrow = TRUE), MARGIN = 1, FUN = dmvnorm, sigma = var(as.numeric(as.matrix(train_c0[,ones_left + 2 + 1])))
+             * diag(length(ones_left)), log = TRUE) )) 
+lrstat0.2
+1 - pchisq(q = lrstat0.2, df = (length(ones_left) - 1))
+
+lrstat1.2 <- -2 * (sum( apply(X = train_c1[,ones_left + 3], MARGIN = c(1,2), FUN = dnorm, log = TRUE, mean = mean(mu_c1[ones_left + 1]), sd = sqrt(var(as.numeric(as.matrix(train_c1[,ones_left + 3])))
+) ) ) - 
+  sum( apply(X = train_c1[,ones_left + 3] - matrix(rep(x = mu_c1[ones_left + 1], times = nrow(train_c1)), nrow = nrow(train_c1), byrow = TRUE), MARGIN = 1, FUN = dmvnorm, sigma = var(as.numeric(as.matrix(train_c1[,ones_left + 3])))
+             * diag(length(ones_left)), log = TRUE) )) 
+lrstat1.2
+1 - pchisq(q = lrstat1.2, df = (length(ones_left) - 1))
