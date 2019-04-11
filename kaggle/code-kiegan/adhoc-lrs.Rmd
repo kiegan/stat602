@@ -1,0 +1,110 @@
+---
+title: "Ad Hoc LRs"
+output: pdf_document
+---
+
+Read in packages, data. 
+```{r}
+library(tidyverse)
+library(gridExtra)
+library(matrixStats)
+
+train <- read_csv("../data/train.csv")
+test <- read_csv("../data/test.csv")
+all <- full_join(train, test)
+
+```
+
+The following columns remained in an initial LASSO model using lambda.min: 
+4, 15:17, 24, 30, 33, 43, 45, 46, 50, 63, 65, 69, 73, 80, 82, 90, 91, 101, 108, 114, 117, 127, 129, 130, 132:134, 145, 156, 165, 168, 170, 176, 180, 183, 189, 194, 199, 201, 209, 211, 217, 220, 226, 227, 237, 239, 249, 252, 258, 268, 272, 276, 285, 288, 295, 298
+```{r}
+lasso_cols <- c(4, 15:17, 24, 30, 33, 43, 45, 46, 50, 
+                63, 65, 69, 73, 80, 82, 90, 91, 
+                101, 108, 114, 117, 127, 129, 130, 132:134, 145, 
+                156, 165, 168, 170, 176, 180, 183, 189, 194, 199, 
+                201, 209, 211, 217, 220, 226, 227, 237, 239, 249, 
+                252, 258, 268, 272, 276, 285, 288, 295, 298)
+
+train_lasso_cols <- as.data.frame(train[,c(1:2, lasso_cols+3)])
+test_lasso_cols <- as.data.frame(test[,c(1, lasso_cols+2)])
+```
+
+
+
+```{r}
+
+names(train_lasso_cols) <- paste0("col_", names(train_lasso_cols))
+names(test_lasso_cols) <- paste0("col_", names(test_lasso_cols))
+
+density_lr <- function(dataset, col_name){
+  class0 <- dataset[dataset$col_target == 0,]
+  class1 <- dataset[dataset$col_target == 1,]
+  
+  class0_density <- density(class0[,col_name])
+  class1_density <- density(class1[,col_name])
+  
+  lr_density <- class1_density$y/class0_density$y
+  
+  new_col <- paste0("kernel_lr_", col_name)
+  
+  for(i in 1:nrow(dataset)){
+    dataset[i,new_col] <- lr_density[which.min(abs(dataset[i, col_name] - class0_density$x))]
+  }
+  return(dataset)
+}
+
+train_lasso_cols <- density_lr(train_lasso_cols, "col_33")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_65")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_117")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_217")
+
+
+density_lr_est <- function(dataset, col_name){
+  class0 <- dataset[dataset$col_target == 0,]
+  class1 <- dataset[dataset$col_target == 1,]
+  
+  class0_density <- density(class0[,col_name])
+  class1_density <- density(class1[,col_name])
+  
+  lr_density <- class1_density$y/class0_density$y
+  
+  return(data.frame(density_x = class0_density$x, density_lr = lr_density))
+}
+
+test_density_cols <- function(dataset_test, col_name, density_df){
+  new_col <- paste0("kernel_lr_", col_name)
+  for(i in 1:nrow(dataset_test)){
+    dataset_test[i,new_col] <- density_df$density_lr[which.min(abs(dataset_test[i,col_name] - density_df$density_x))]
+  }
+  return(dataset_test)
+}
+
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_33", density_df = density_lr_est(train_lasso_cols, "col_33"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_65", density_df = density_lr_est(train_lasso_cols, "col_65"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_117", density_df = density_lr_est(train_lasso_cols, "col_117"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_217", density_df = density_lr_est(train_lasso_cols, "col_217"))
+
+```
+
+
+Now, let's fit another LASSO.
+```{r}
+lasso_kernel_lrs <- cv.glmnet(x = as.matrix(train_lasso_cols[,-c(1:2)]), y = train$target, family = "binomial", alpha = 1, nfolds = 10)
+s = lasso_kernel_lrs$lambda.min
+lasso_kernel_coef = predict(lasso_kernel_lrs, s = s, type = "coefficients")
+```
+
+Code for writing a submission file: 
+
+```{r}
+preds <- predict(lasso_kernel_lrs, s = s, newx = as.matrix(test_lasso_cols[,-1]), type = "response") 
+
+
+submission <- data.frame(id = test$id, target = as.vector(preds))
+write_csv(submission, "kernel_lrs_submission.csv")
+```
+
+
+
+Next thing to try: do kernel LR estimates but with all 13 or so that stay in the LASSO lambda.1se model, then try again.
+
