@@ -6,193 +6,213 @@ output: html_document
 ---
 
 ```{r}
-dont_overfit_train <- read_csv("../data/train.csv")
+library(tidyverse)
+library(gridExtra)
+library(matrixStats)
+```
 
-dont_overfit_train %>%
+```{r}
+train <- read_csv("../data/train.csv")
+
+train %>%
   gather(3:22, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num, nrow = 4) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(23:42, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num, nrow = 4) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(43:62, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num, nrow = 4) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(63:82, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(83:102, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(103:122, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(123:142, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(143:162, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(163:182, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(183:202, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(203:222, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(223:242, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(243:262, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(263:282, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_train %>%
+train %>%
   gather(283:302, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
 ```
 
+```{r}
+train_long <- train %>%
+  gather(3:302, key = "col_num", value = "value") %>%
+  mutate(col_num = as.numeric(col_num))
+
+train_long %>% 
+  filter(col_num < 5) %>%
+  ggplot() + geom_line(aes(x = col_num, y = value, group = id, color = factor(target)),alpha = 0.3) + 
+  facet_wrap(~target) + 
+  theme_bw()
+train_long %>% 
+  filter(between(col_num, 6, 10)) %>%
+  ggplot() + geom_line(aes(x = col_num, y = value, group = id, color = factor(target)),alpha = 0.3) + 
+  facet_wrap(~target) + 
+  theme_bw()
+```
 
 
 
 ```{r}
-dont_overfit_train %>%
+train %>%
   gather(3:302, key ="col_num", value = "value") %>%
-  mutate(col_num = as.numeric(col_num)) %>%
   ggplot() + geom_line(aes(x = col_num, y = value, group = id, color = factor(target)),alpha = 0.3) + 
   facet_wrap(~target, nrow = 2) + 
   theme_bw()
 
-dont_overfit_train_long <- dont_overfit_train %>%
-  gather(3:302, key = "col_num", value = "value")
-```
-
-```{r}
-dont_overfit_train_features <- dont_overfit_train %>% select(-id, -target)
-dont_overfit_train_dist <- as.data.frame(as.matrix(dist(dont_overfit_train_features)))
-dont_overfit_train_dist <- dont_overfit_train_dist %>% mutate(obs_1 = rownames(dont_overfit_train_dist)) %>% gather(1:250, key = "obs_2", value = "distance")
 
 ```
 
 ```{r}
-dont_overfit_test <- read_csv("../data/test.csv")
-dont_overfit_test <- dont_overfit_test %>% mutate(target = -1)
+train_features <- train %>% select(-id, -target)
+train_dist <- as.data.frame(as.matrix(dist(train_features)))
+train_dist <- train_dist %>% mutate(obs_1 = rownames(train_dist)) %>% gather(1:250, key = "obs_2", value = "distance")
 
-dont_overfit_all <- full_join(dont_overfit_train, dont_overfit_test)
-target <- dont_overfit_all$target
-id <- dont_overfit_all$id
-#dont_overfit_all <- dont_overfit_all %>% select(-id, -target)
-dont_overfit_all$row_mean <- rowMeans(dont_overfit_all[,3:302])
-dont_overfit_all$row_sum <- rowSums(dont_overfit_all[,3:302])
-dont_overfit_all$row_sds <- rowSds(as.matrix(dont_overfit_all[,3:302]))
+```
+
+```{r}
+test <- read_csv("../data/test.csv")
+test <- test %>% mutate(target = -1)
+
+all <- full_join(train, test)
+target <- all$target
+id <- all$id
+#all <- all %>% select(-id, -target)
+#all$row_mean <- rowMeans(all[,3:302])
+#all$row_sum <- rowSums(all[,3:302])
+#all$row_sds <- rowSds(as.matrix(all[,3:302]))
 ```
 
 
 ```{r}
-dont_overfit_all %>%
+all %>%
   gather(3:22, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num, nrow = 4) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(23:42, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num, nrow = 4) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(43:62, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num, nrow = 4) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(63:82, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(83:102, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(103:122, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(123:142, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(143:162, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(163:182, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(183:202, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(203:222, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(223:242, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(243:262, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(263:282, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
   theme_bw()
-dont_overfit_all %>%
+all %>%
   gather(283:302, key = "col_num", value = "value") %>%
   ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
   facet_wrap(~col_num) + 
@@ -200,7 +220,85 @@ dont_overfit_all %>%
 ```
 
 
-Let's look at the ROW distributions...
+
+```{r}
+cor_all <- as.data.frame(cor(all))
+cor_all_long <- cor_all %>% select(-id, -target) %>% mutate(col_1 = rownames(cor_all)) %>% gather(1:300, key = "col_2", value = "correlation")
+
+cor_all_long %>% filter(correlation != 1) %>% ggplot() + geom_density(aes(x = correlation)) + theme_bw()
+
+cor_train <- as.data.frame(cor(train))
+cor_train_long <- cor_train %>% mutate(col_1 = rownames(cor_train)) %>% select(-id, -target) %>% gather(1:300, key = "col_2", value = "correlation")
+
+cor_train_long %>% filter(correlation != 1) %>% ggplot() + geom_density(aes(x = correlation)) + theme_bw()
+```
+
+
+
+
+# Clustering  
+
 ```{r}
 
+all_features <- all %>% select(-id, -target)
+# Determine number of clusters
+wss <- (nrow(all_features)-1)*sum(apply(all_features,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(all_features, 
+   centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+  ylab="Within groups sum of squares")
+
+# K-Means Cluster Analysis
+fit <- kmeans(all_features, 10) # 5 cluster solution
+# get cluster means 
+aggregate(all_features,by=list(fit$cluster),FUN=mean)
+# append cluster assignment
+all_features <- data.frame(all_features, fit$cluster)
+all_features$target <- all$target
 ```
+
+
+hierarchical
+```{r}
+all_features <- all %>% select(-target, -id)
+# Dissimilarity matrix
+d <- dist(all_features, method = "euclidean")
+d_train <- dist(train_features, method = "euclidean")
+
+# Hierarchical clustering using Complete Linkage
+hc1 <- hclust(d, method = "ward.D")
+hc_train <- hclust(d_train, method = "ward.D")
+
+groups.2 = cutree(hc1,2)
+groups.3 = cutree(hc1, 3)
+groups.5 = cutree(hc1, 5)
+
+groups_train_2 <- cutree(hc_train, 2)
+groups_train_3 <- cutree(hc_train, 3)
+groups_train_5 <- cutree(hc_train, 5)
+
+ 
+all_features$groups.2 = groups.2
+all_features$groups.3 = groups.3
+all_features$target <- all$target
+
+
+```
+
+
+
+# let's try some lasso! 
+
+
+```{r}
+train <- read_csv("../data/train.csv")
+
+library(glmnet)
+
+lasso_train <- cv.glmnet(x = as.matrix(train[,3:302]), y = train$target, family = "binomial", alpha = 1, nfolds = 10)
+```
+
+
+
+
+
