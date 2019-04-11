@@ -285,3 +285,66 @@ lrstat1.2 <- -2 * (sum( apply(X = train_c1[,ones_left + 3], MARGIN = c(1,2), FUN
              * diag(length(ones_left)), log = TRUE) )) 
 lrstat1.2
 1 - pchisq(q = lrstat1.2, df = (length(ones_left) - 1))
+
+## Make note of columns (column names) that we want to model with various means
+relevant_cols <- c(33,65, ones_left)
+save(relevant_cols, file = "kaggle/NateAnalysis/interesting_columns.rda")
+
+hist(cor(x = train_c0[,3 + relevant_cols]))
+hist(cor(x = train_c1[,3 + relevant_cols]))
+
+
+## correlations of relevant columns
+## summary: still thinking there are probably no correlations... if there are any they may be in class 0
+relevant_col_cors_c0 <- numeric()
+relevant_col_cors_c1 <- numeric()
+cor_test_c0 <- numeric()
+cor_test_c1 <- numeric()
+counter <- 0
+for(i in relevant_cols[-length(relevant_cols)])
+{
+  for(j in relevant_cols[(which(relevant_cols == i) + 1):length(relevant_cols)])
+  {
+    counter <- counter + 1
+    relevant_col_cors_c0[counter] <- cor(train_c0[,i + 3], train_c0[,j + 3]) 
+    relevant_col_cors_c1[counter] <- cor(train_c1[,i + 3], train_c1[,j + 3]) 
+    cor_test_c0[counter] <- 2 * (1 - pt(q = abs(relevant_col_cors_c0[counter]) * sqrt(nrow(train_c0) - 2) / sqrt(1 - relevant_col_cors_c0[counter]^2), df = nrow(train_c0) - 2))
+    cor_test_c1[counter] <- 2 * (1 - pt(q = abs(relevant_col_cors_c1[counter]) * sqrt(nrow(train_c1) - 2) / sqrt(1 - relevant_col_cors_c1[counter]^2), df = nrow(train_c1) - 2))
+  }
+}
+hist(cor_test_c0)
+hist(cor_test_c1)
+ks.test(x = cor_test_c0, y = "punif")
+ks.test(x = cor_test_c1, y = "punif")
+relevant_col_cors_c0[order(cor_test_c0)][1:10]
+relevant_col_cors_c1[order(cor_test_c1)][1:10]
+
+plot(relevant_col_cors_c0, relevant_col_cors_c1)
+hist(relevant_col_cors_c0 - relevant_col_cors_c1)
+
+
+## normality tests for all relevant columns (yes everything looks normal)
+norm_tests_c0 <- numeric()
+norm_tests_c1 <- numeric()
+for(i in 1:length(relevant_cols)){
+  norm_tests_c0[i] <- shapiro.test(x = train_c0[,relevant_cols[i] + 3])$p.value
+  norm_tests_c1[i] <- shapiro.test(x = train_c1[,relevant_cols[i] + 3])$p.value
+}
+hist(norm_tests_c0)
+hist(norm_tests_c1)
+
+ks.test(norm_tests_c0, y = "punif")
+ks.test(norm_tests_c1, y = "punif")
+
+## normality test for all columns (yes everything looks normal)
+# norm_tests_c0 <- numeric()
+# norm_tests_c1 <- numeric()
+# for(i in 1:300){
+#   norm_tests_c0[i] <- shapiro.test(x = train_c0[,i + 2])$p.value
+#   norm_tests_c1[i] <- shapiro.test(x = train_c1[,i + 2])$p.value
+# }
+# hist(norm_tests_c0)
+# hist(norm_tests_c1)
+# 
+# ks.test(norm_tests_c0, y = "punif")
+# ks.test(norm_tests_c1, y = "punif")
