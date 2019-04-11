@@ -25,6 +25,7 @@ library(caret)
 library(elasticnet)
 library(earth)
 library(pls)
+library(reshape2)
 ```
 
 # Problem 9  
@@ -32,6 +33,41 @@ kiegan will do this problem
 
 # Problem 10  
 nate will do this problem  
+
+```{r, eval TRUE, echo = TRUE, results = 'asis'}
+wine <- read.csv(file = "data/winequality-white.csv", sep = ";", check.names = TRUE)
+y <- -1*(wine$quality <= 7) + 1*(wine$quality > 7)
+wine$y <- as.factor(y)
+train_wine <- wine[,-(ncol(wine) - 1)]
+
+fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 5, search = "grid")
+
+set.seed(1308)
+mods <- c("knn", "nnet", "rpart","rf", "xgbTree", "C5.0","glmnet", "stepLDA", "svmLinear", "svmPoly", "svmRadial")
+preds <- list()
+fitmod <- list()
+for(i in 1:length(mods))
+{
+  fitmod[[i]] <- caret::train(y ~ ., data = train_wine, trControl = fitControl, method = mods[i])
+}
+names(fitmod) <- mods
+
+preds <- extractPrediction(models = fitmod)
+pred_y <- data.frame("obs" = train_wine$y, "pred" = train_wine$y, "model" = "actual", "dataType" = "Training", "object" = "none")
+
+preds <- rbind(preds, pred_y)
+
+pred_mat <- matrix(nrow = length(mods) + 1, ncol = length(mods) + 1)
+
+pred_mat <- rbind(pred_mat, pred_mat_y)
+for(i in 1:nrow(pred_mat))
+{
+  for(j in 1:nrow(pred_mat))
+  {
+    pred_mat[i,j] <- mean(preds[preds$model == mods[i],]$pred == preds[preds$model == mods[j],]$pred)
+  }
+}
+```
 
 # Problem 11  
 kiegan will do this problem
