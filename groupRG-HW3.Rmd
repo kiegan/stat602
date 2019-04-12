@@ -25,13 +25,60 @@ library(caret)
 library(elasticnet)
 library(earth)
 library(pls)
+library(reshape2)
+library(kernlab)
+library(randomForest)
+library(nnet)
+library(rpart)
+library(C50)
+library(glmnet)
+library(klaR)
 ```
 
 # Problem 9  
 kiegan will do this problem 
 
 # Problem 10  
-nate will do this problem  
+Shown below is the matrix of the proportion of predictions that agree between any two methods. The row and column labeled "actual" corresponds to the true data label.  
+
+```{r, eval = TRUE, echo = TRUE, results = 'asis', message=FALSE, warning=FALSE}
+wine <- read.csv(file = "data/winequality-white.csv", sep = ";", check.names = TRUE)
+y <- -1*(wine$quality <= 7) + 1*(wine$quality > 7)
+wine$y <- as.factor(y)
+train_wine <- wine[,-(ncol(wine) - 1)]
+
+# fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 5, search = "grid")
+# 
+# set.seed(1308)
+mods <- c("knn", "nnet", "rpart","rf", "xgbTree", "C5.0","glmnet", "stepLDA", "svmLinear", "svmPoly", "svmRadial")
+# preds <- list()
+# fitmod <- list()
+# for(i in 1:length(mods))
+# {
+#   fitmod[[i]] <- caret::train(y ~ ., data = train_wine, trControl = fitControl, method = mods[i])
+# }
+# names(fitmod) <- mods
+# 
+# saveRDS(fitmod, file = "hw3_10_models.rda")
+fitmod <- readRDS(file = "hw3_10_models.rda")
+preds <- extractPrediction(models = fitmod)
+pred_y <- data.frame("obs" = train_wine$y, "pred" = train_wine$y, "model" = "actual", "dataType" = "Training", "object" = "none")
+
+preds <- rbind(preds, pred_y)
+
+pred_mat <- matrix(nrow = length(mods) + 1, ncol = length(mods) + 1)
+mods[12] <- "actual"
+for(i in 1:nrow(pred_mat))
+{
+  for(j in 1:nrow(pred_mat))
+  {
+    pred_mat[i,j] <- mean(preds[preds$model == mods[i],]$pred == preds[preds$model == mods[j],]$pred)
+  }
+}
+colnames(pred_mat) <- mods
+rownames(pred_mat) <- mods
+knitr::kable(round(pred_mat[,-ncol(pred_mat)], digits = 3))
+```
 
 # Problem 11  
 kiegan will do this problem

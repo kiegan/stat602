@@ -3,6 +3,8 @@ test <- read.csv(file = "data/test.csv", check.names = FALSE, strip.white = TRUE
 
 ## load models
 load(file = "kaggle/NateAnalysis/m1.rda")
+load(file = "kaggle/NateAnalysis/m2.rda")
+
 
 ## feature generation
 source(file = "kaggle/NateAnalysis/feature_generation_functions.R")
@@ -20,3 +22,17 @@ write.csv(x = test_sub, file = "kaggle/NateAnalysis/nate_sub1.csv", row.names = 
 # kieg_pred <- read.csv("C://Users/Nate/Downloads/lasso_submission.csv")
 # 
 # plot(test_sub$target, kieg_pred$target)
+
+
+## feature generation for model 2
+## Model 2
+lrs_test <- t(apply(X = test[,-c(1)], MARGIN = 1, FUN = nates_normal_loglr_feats2))
+colnames(lrs_test) <- paste("lr", relevant_cols, sep = "_")
+
+test_f2 <- cbind(test[,-1], lrs_test)
+
+test_target_pred2 <- predict.cv.glmnet(m2, newx = as.matrix(x = test_f2), type = "response", s = "lambda.min")
+
+test_sub2 <- data.frame("id" = test$id, "target" = as.numeric(test_target_pred2))
+
+write.csv(x = test_sub2, file = "kaggle/NateAnalysis/nate_sub2.csv", row.names = FALSE)

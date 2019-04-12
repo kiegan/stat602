@@ -44,6 +44,46 @@ nates_normal_loglr_feat <- function(x, mu0, mu1, prior_c0, prior_c1)
   return(lr)
 }
 
+## function to compute univariate, normal LRs for relevant columns
+load(file = "kaggle/NateAnalysis/interesting_columns.rda")
+
+mu_relevant_cols_c0 <- apply(X = train_c0[,relevant_cols + 3], MARGIN = 2, FUN = mean) 
+sd_relevant_cols_c0 <- apply(X = train_c0[,relevant_cols + 3], MARGIN = 2, FUN = sd) 
+
+mu_relevant_cols_c1 <- apply(X = train_c1[,relevant_cols + 3], MARGIN = 2, FUN = mean) 
+sd_relevant_cols_c1 <- apply(X = train_c1[,relevant_cols + 3], MARGIN = 2, FUN = sd) 
+
+
+nates_normal_loglr_feats2 <- function(x, mu0 = mu_relevant_cols_c0, 
+                                      mu1 = mu_relevant_cols_c1, 
+                                      sd0 = sd_relevant_cols_c0,
+                                      sd1 = sd_relevant_cols_c1,
+                                      prior_c0 = 90/250, 
+                                      prior_c1 = 160/250, 
+                                      rel_cols = relevant_cols)
+{
+  lrs <- numeric(length = length(rel_cols))
+  x <- as.numeric(x[rel_cols + 1])
+  for(i in 1:length(lrs))
+  {
+    lrs[i] <- dnorm(x = x[i] , mean = mu1[i], sd = sd0[i], log = TRUE) - 
+      dnorm(x = x[i] , mean = mu0[i], sd = sd1[i], log = TRUE) - 
+      log(prior_c1/prior_c0)
+  }
+  
+  return(lrs)
+}
+
+# temp <- nates_normal_loglr_feats2(x = train[1,-c(1,2)])
+lrs <- t(apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feats2))
+colnames(lrs) <- paste("lr", relevant_cols, sep = "_")
+train <- cbind(train, lrs)
+summary(glm(formula = train$target ~ lrs))
+
+
+## function to create kernalized features 
+kernalize_feats <- function(x, kern)
+
 ## temporarily create the means based on a subset of the data since my first submission was crap
 ##    just to test things
 # ind0 <- sample.int(n = nrow(train_c0), replace = FALSE, size = 0.8 * nrow(train_c0))

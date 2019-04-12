@@ -1,5 +1,6 @@
 ## script to train models
 library(pROC)
+library(glmnet)
 source("kaggle/NateAnalysis/feature_generation_functions.R")
 train <- read.csv("data/train.csv", check.names = FALSE, strip.white = TRUE)
 f1 <- apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feat,
@@ -14,3 +15,15 @@ save(m1, file = "kaggle/NateAnalysis/m1.rda")
 # 
 # plot(roc(response = train_f$target, predictor = target_pred))
 # roc(response = train_f$target, predictor = target_pred)
+
+## Model 2
+lrs <- t(apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feats2))
+colnames(lrs) <- paste("lr", relevant_cols, sep = "_")
+
+train_f2 <- cbind(train[,-1], lrs)
+m2 <- cv.glmnet(x = as.matrix(train_f2[,-1]), y = train_f2$target, family = "binomial", type.measure = "auc")
+# summary(m2)
+
+# predict.cv.glmnet(object = m2, newx = as.matrix(train_f2[,-1]), s = "lambda.min", type = "response")
+
+save(m2, file = "kaggle/NateAnalysis/m2.rda")
