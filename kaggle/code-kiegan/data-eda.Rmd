@@ -301,8 +301,9 @@ f1 <- apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feat,
 train$nate_lr <- f1
 lasso_train <- cv.glmnet(x = as.matrix(train[,3:302]), y = train$target, family = "binomial", alpha = 1, nfolds = 10)
 s = lasso_train$lambda.min
-lasso.coef = predict(lasso_train, s = s, type = "coefficients")
-
+s_1se = lasso_train$lambda.1se
+lasso.coef = predict(lasso_train, s = s_1se, type = "coefficients")
+lasso.coef
 test <- read_csv("../data/test.csv")
 f2 <- apply(X = test[,-1], MARGIN = 1, FUN = nates_normal_loglr_feat,
             mu0 = mod_mu_c0, mu1 = mod_mu_c1, prior_c0 = 90/250, prior_c1 = 160/250)

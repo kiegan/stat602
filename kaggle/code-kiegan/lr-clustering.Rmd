@@ -1,0 +1,215 @@
+---
+title: "LRs and Clustering"
+author: "Kiegan Rice"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(gridExtra)
+library(matrixStats)
+
+train <- read_csv("../data/train.csv")
+test <- read_csv("../data/test.csv")
+all <- full_join(train, test)
+
+```
+
+
+let's grab columns: 16, 33, 43, 65, 73, 80, 82, 90, 91, 101, 108, 117, 133, 134, 165, 183, 189, 194, 199, 217, 226, 237, 258, 295, 298
+```{r}
+
+lasso_cols_1se <- c(16, 33, 43,
+                65,73, 80, 82, 90, 91, 
+                101, 108, 117, 133, 134, 165, 183, 189, 194, 199, 
+                217, 226, 237, 258, 295, 298)
+
+train_cols_1se <- as.data.frame(train[,c(1:2, lasso_cols_1se+3)])
+test_cols_1se <- as.data.frame(test[,c(1, lasso_cols_1se+2)])
+
+
+names(train_cols_1se) <- paste0("col_", names(train_cols_1se))
+names(test_cols_1se) <- paste0("col_", names(test_cols_1se))
+```
+
+Functions to calculate kernel density estimates for LRs...
+
+```{r}
+density_lr <- function(dataset, col_name){
+  class0 <- dataset[dataset$col_target == 0,]
+  class1 <- dataset[dataset$col_target == 1,]
+  
+  class0_density <- density(class0[,col_name])
+  class1_density <- density(class1[,col_name])
+  
+  lr_density <- class1_density$y/class0_density$y
+  
+  new_col <- paste0("kernel_lr_", col_name)
+  
+  for(i in 1:nrow(dataset)){
+    dataset[i,new_col] <- lr_density[which.min(abs(dataset[i, col_name] - class0_density$x))]
+  }
+  return(dataset)
+}
+
+density_lr_est <- function(dataset, col_name){
+  class0 <- dataset[dataset$col_target == 0,]
+  class1 <- dataset[dataset$col_target == 1,]
+  
+  class0_density <- density(class0[,col_name])
+  class1_density <- density(class1[,col_name])
+  
+  lr_density <- class1_density$y/class0_density$y
+  
+  return(data.frame(density_x = class0_density$x, density_lr = lr_density))
+}
+
+test_density_cols <- function(dataset_test, col_name, density_df){
+  new_col <- paste0("kernel_lr_", col_name)
+  for(i in 1:nrow(dataset_test)){
+    dataset_test[i,new_col] <- density_df$density_lr[which.min(abs(dataset_test[i,col_name] - density_df$density_x))]
+  }
+  return(dataset_test)
+}
+
+```
+
+Calculate kernel density LR features for each of the columns that remained in our 1se LASSO model. 
+
+```{r}
+train_cols_1se <- density_lr(train_cols_1se, "col_16")
+train_cols_1se <- density_lr(train_cols_1se, "col_33")
+train_cols_1se <- density_lr(train_cols_1se, "col_43")
+train_cols_1se <- density_lr(train_cols_1se, "col_65")
+train_cols_1se <- density_lr(train_cols_1se, "col_73")
+train_cols_1se <- density_lr(train_cols_1se, "col_80")
+train_cols_1se <- density_lr(train_cols_1se, "col_82")
+train_cols_1se <- density_lr(train_cols_1se, "col_90")
+train_cols_1se <- density_lr(train_cols_1se, "col_91")
+train_cols_1se <- density_lr(train_cols_1se, "col_101")
+train_cols_1se <- density_lr(train_cols_1se, "col_108")
+train_cols_1se <- density_lr(train_cols_1se, "col_117")
+train_cols_1se <- density_lr(train_cols_1se, "col_133")
+train_cols_1se <- density_lr(train_cols_1se, "col_134")
+train_cols_1se <- density_lr(train_cols_1se, "col_165")
+train_cols_1se <- density_lr(train_cols_1se, "col_183")
+train_cols_1se <- density_lr(train_cols_1se, "col_189")
+train_cols_1se <- density_lr(train_cols_1se, "col_194")
+train_cols_1se <- density_lr(train_cols_1se, "col_199")
+train_cols_1se <- density_lr(train_cols_1se, "col_217")
+train_cols_1se <- density_lr(train_cols_1se, "col_226")
+train_cols_1se <- density_lr(train_cols_1se, "col_237")
+train_cols_1se <- density_lr(train_cols_1se, "col_258")
+train_cols_1se <- density_lr(train_cols_1se, "col_295")
+train_cols_1se <- density_lr(train_cols_1se, "col_298")
+
+
+
+test_cols_1se <- test_density_cols(test_cols_1se, "col_16", density_df = density_lr_est(train_cols_1se, "col_16"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_33", density_df = density_lr_est(train_cols_1se, "col_33"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_43", density_df = density_lr_est(train_cols_1se, "col_43"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_65", density_df = density_lr_est(train_cols_1se, "col_65"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_73", density_df = density_lr_est(train_cols_1se, "col_73"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_80", density_df = density_lr_est(train_cols_1se, "col_80"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_82", density_df = density_lr_est(train_cols_1se, "col_82"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_90", density_df = density_lr_est(train_cols_1se, "col_90"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_91", density_df = density_lr_est(train_cols_1se, "col_91"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_101", density_df = density_lr_est(train_cols_1se, "col_101"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_108", density_df = density_lr_est(train_cols_1se, "col_108"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_117", density_df = density_lr_est(train_cols_1se, "col_117"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_133", density_df = density_lr_est(train_cols_1se, "col_133"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_134", density_df = density_lr_est(train_cols_1se, "col_134"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_165", density_df = density_lr_est(train_cols_1se, "col_165"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_183", density_df = density_lr_est(train_cols_1se, "col_183"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_189", density_df = density_lr_est(train_cols_1se, "col_189"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_194", density_df = density_lr_est(train_cols_1se, "col_194"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_199", density_df = density_lr_est(train_cols_1se, "col_199"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_217", density_df = density_lr_est(train_cols_1se, "col_217"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_226", density_df = density_lr_est(train_cols_1se, "col_226"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_237", density_df = density_lr_est(train_cols_1se, "col_237"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_258", density_df = density_lr_est(train_cols_1se, "col_258"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_295", density_df = density_lr_est(train_cols_1se, "col_295"))
+test_cols_1se <- test_density_cols(test_cols_1se, "col_298", density_df = density_lr_est(train_cols_1se, "col_298"))
+
+```
+
+
+Let's try a LASSO and see what happens...
+
+```{r}
+lasso_kernel_lrs <- cv.glmnet(x = as.matrix(train_cols_1se[,-c(1:2)]), y = train$target, family = "binomial", alpha = 1, nfolds = 10)
+s = lasso_kernel_lrs$lambda.min
+s_1se = lasso_kernel_lrs$lambda.1se
+lasso_kernel_coef = predict(lasso_kernel_lrs, s = s, type = "coefficients")
+lasso_kernel_coef
+```
+
+Now let's try some model-based clustering...
+
+```{r}
+library(mclust)
+clPairs(data = train_cols_1se[,c(28:31, 33:34, 36:38, 43:44, 46, 48:50, 52)], classification = train_cols_1se$col_target)
+
+
+BIC <- mclustBIC(data = train_cols_1se[,c(28:31, 33:34, 36:38, 43:44, 46, 48:50, 52)])
+plot(BIC)
+summary(BIC)
+
+
+mod1 <- Mclust(train_cols_1se[,c(28:31, 33:34, 36:38, 43:44, 46, 48:50, 52)], x = BIC)
+summary(mod1, parameters = TRUE)
+plot(mod1, what = "classification")
+
+table(mod1$classification, train_cols_1se$col_target)
+```
+
+
+```{r}
+test_cols_1se$col_target = -1
+all_1se <- full_join(train_cols_1se, test_cols_1se)
+head(all_1se)
+all_1se <- all_1se %>% select(-target)
+
+clPairs(data = all_1se[,c(28:31, 33:34, 36:38, 43:44, 46, 48:50, 52)], classification = all_1se$col_target)
+BIC <- mclustBIC(data = all_1se[,c(28:31, 33:34, 36:38, 43:44, 46, 48:50, 52)])
+plot(BIC)
+summary(BIC)
+
+mod1 <- Mclust(all_1se[,c(28:31, 33:34, 36:38, 43:44, 46, 48:50, 52)], x = BIC)
+summary(mod1, parameters = TRUE)
+table(mod1$classification, all_1se$col_target)
+plot(mod1, what = "classification")
+
+all_1se$cluster_class <- as.factor(mod1$classification)
+
+all_1se$in_cluster9 <- ifelse(mod1$classification == 9, 1, 0)
+all_1se$in_cluster4or5 <- ifelse(mod1$classification == 4 | mod1$classification == 4, 1, 0)
+all_1se$in_cluster1 <- ifelse(mod1$classification == 1, 1, 0)
+
+
+train_1se <- all_1se %>% filter(col_target != -1)
+test_1se <- all_1se %>% filter(col_target == -1)
+```
+
+
+Now that we have some clustering, let's see if including that in our LASSO model helps at all. 
+
+```{r}
+lasso_lrs_clusters <- cv.glmnet(x = as.matrix(train_1se[,-c(1:2, 53)]), y = train_1se$col_target, family = "binomial", alpha = 1, nfolds = 10)
+s = lasso_lrs_clusters$lambda.min
+s_1se = lasso_lrs_clusters$lambda.1se
+lasso_clusters_coef = predict(lasso_lrs_clusters, s = s_1se, type = "coefficients")
+lasso_clusters_coef
+```
+
+```{r}
+preds <- predict(lrs_clusters_model, s = s, newx = as.matrix(test_1se[,-c(1:2, 53)]), type = "response") 
+
+preds <- predict(lrs_clusters_model, s = s, newx = as.matrix(train_1se[,c(1:2, 53)]), type = "response")
+
+test <- data.frame(id = train$id, target = train$target, preds = as.vector(preds$fit))
+
+submission <- data.frame(id = test$id, target = as.vector(preds))
+write_csv(submission, "lasso_lrs_clusters.csv")
+```
+
