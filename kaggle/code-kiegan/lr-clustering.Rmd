@@ -168,7 +168,6 @@ table(mod1$classification, train_cols_1se$col_target)
 test_cols_1se$col_target = -1
 all_1se <- full_join(train_cols_1se, test_cols_1se)
 head(all_1se)
-all_1se <- all_1se %>% select(-target)
 
 clPairs(data = all_1se[,c(28:31, 33:34, 36:38, 43:44, 46, 48:50, 52)], classification = all_1se$col_target)
 BIC <- mclustBIC(data = all_1se[,c(28:31, 33:34, 36:38, 43:44, 46, 48:50, 52)])
@@ -200,6 +199,12 @@ s = lasso_lrs_clusters$lambda.min
 s_1se = lasso_lrs_clusters$lambda.1se
 lasso_clusters_coef = predict(lasso_lrs_clusters, s = s_1se, type = "coefficients")
 lasso_clusters_coef
+
+
+preds_train <- predict(lasso_lrs_clusters, s = s, newx = as.matrix(train_1se[,-c(1:2, 53)]), type = "response")
+train_preds <- data.frame(id = train$id, target = train$target, preds = as.vector(preds_train))
+preds_test <- predict(lasso_lrs_clusters, s = s, newx = as.matrix(test_1se[,-c(1:2, 53)]), type = "response")
+test <- data.frame(id = test$id, preds = as.vector(preds_test))
 ```
 
 Instead of LASSO, let's try a random forest instead.
@@ -213,14 +218,25 @@ library(caret)
 #                       method = "rf",
 #                       trControl = trControl)
 
-first_rf <- randomForest(factor(col_target)~., data=train_1se[,-c(1)])
+first_rf <- randomForest(factor(col_target)~., data=train_1se[,-c(1)], ntree = 100)
 preds_train_rf <- predict(first_rf, newdata = train_1se[,-c(1:2)], type = "prob")
 test_rf <- data.frame(id = train$id, target = train$target, preds = as.vector(preds_train_rf[,2]))
 preds_rf <- predict(first_rf, newdata = test_1se[,-c(1:2)], type = "prob")
 test <- data.frame(id = test$id, preds = preds_rf[,2])
 ```
 
+Let's try LDA... 
 
+
+```{r}
+library(MASS)
+first_lda <- lda(factor(col_target)~., data = train_1se[,-c(1)])
+preds_train_lda <- predict(first_lda, newdata = train_1se[,-c(1:2)], type = "prob")
+test_lda <- data.frame(id = train$id, target = train$target, preds = preds_train_lda$posterior[,2])
+preds_lda <- predict(first_lda, newdata = test_1se[,-c(1:2)], type = "prob")
+test <- data.frame(id = test$id, target =preds_lda$posterior[,2])
+write_csv(test, "lda_lrs_clusters.csv")
+```
 
 
 ```{r}
