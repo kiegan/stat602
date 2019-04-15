@@ -202,14 +202,35 @@ lasso_clusters_coef = predict(lasso_lrs_clusters, s = s_1se, type = "coefficient
 lasso_clusters_coef
 ```
 
+Instead of LASSO, let's try a random forest instead.
+
+```{r}
+library(randomForest)
+library(caret)
+#trControl <- trainControl(method = "cv", number = 10)
+
+#first_rf <- caret::train(form = factor(col_target)~., data = train_1se[,-c(1, 53)], 
+#                       method = "rf",
+#                       trControl = trControl)
+
+first_rf <- randomForest(factor(col_target)~., data=train_1se[,-c(1)])
+preds_train_rf <- predict(first_rf, newdata = train_1se[,-c(1:2)], type = "prob")
+test_rf <- data.frame(id = train$id, target = train$target, preds = as.vector(preds_train_rf[,2]))
+preds_rf <- predict(first_rf, newdata = test_1se[,-c(1:2)], type = "prob")
+test <- data.frame(id = test$id, preds = preds_rf[,2])
+```
+
+
+
+
 ```{r}
 preds <- predict(lrs_clusters_model, s = s, newx = as.matrix(test_1se[,-c(1:2, 53)]), type = "response") 
 
-preds <- predict(lrs_clusters_model, s = s, newx = as.matrix(train_1se[,c(1:2, 53)]), type = "response")
+preds <- predict(lrs_clusters_model, s = s, newx = as.matrix(train_1se[,-c(1:2, 53)]), type = "response")
 
 test <- data.frame(id = train$id, target = train$target, preds = as.vector(preds$fit))
 
-submission <- data.frame(id = test$id, target = as.vector(preds))
+submission <- data.frame(id = test$id, target = preds_rf[,2])
 write_csv(submission, "lasso_lrs_clusters.csv")
 ```
 

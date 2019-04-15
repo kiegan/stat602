@@ -311,7 +311,8 @@ f2 <- apply(X = test[,-1], MARGIN = 1, FUN = nates_normal_loglr_feat,
 test$nate_lr <- f2
 
 preds <- predict(lasso_train, s = s, newx = as.matrix(test[,-1]), type = "response")
-
+preds_train <- predict(lasso_train, s = s, newx = as.matrix(train[,-c(1:2)]), type = "response")
+test <- data.frame(id = train$id, target = train$target, preds = as.vector(preds_train))
 
 submission <- data.frame(id = test$id, target = as.vector(preds))
 write_csv(submission, "lasso_nate_lr_submission_2.csv")
@@ -319,6 +320,7 @@ write_csv(submission, "lasso_nate_lr_submission_2.csv")
 
 
 ```{r}
+
 ```
 
 
