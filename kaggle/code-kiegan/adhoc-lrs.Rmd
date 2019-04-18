@@ -57,6 +57,22 @@ train_lasso_cols <- density_lr(train_lasso_cols, "col_33")
 train_lasso_cols <- density_lr(train_lasso_cols, "col_65")
 train_lasso_cols <- density_lr(train_lasso_cols, "col_117")
 train_lasso_cols <- density_lr(train_lasso_cols, "col_217")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_4")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_15")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_16")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_17")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_24")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_30")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_43")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_45")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_46")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_50")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_63")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_69")
+train_lasso_cols <- density_lr(train_lasso_cols, "col_73")
+
+
+
 
 
 density_lr_est <- function(dataset, col_name){
@@ -83,6 +99,19 @@ test_lasso_cols <- test_density_cols(test_lasso_cols, "col_33", density_df = den
 test_lasso_cols <- test_density_cols(test_lasso_cols, "col_65", density_df = density_lr_est(train_lasso_cols, "col_65"))
 test_lasso_cols <- test_density_cols(test_lasso_cols, "col_117", density_df = density_lr_est(train_lasso_cols, "col_117"))
 test_lasso_cols <- test_density_cols(test_lasso_cols, "col_217", density_df = density_lr_est(train_lasso_cols, "col_217"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_4", density_df = density_lr_est(train_lasso_cols, "col_4"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_15", density_df = density_lr_est(train_lasso_cols, "col_15"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_16", density_df = density_lr_est(train_lasso_cols, "col_16"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_17", density_df = density_lr_est(train_lasso_cols, "col_17"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_24", density_df = density_lr_est(train_lasso_cols, "col_24"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_30", density_df = density_lr_est(train_lasso_cols, "col_30"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_43", density_df = density_lr_est(train_lasso_cols, "col_43"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_45", density_df = density_lr_est(train_lasso_cols, "col_45"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_46", density_df = density_lr_est(train_lasso_cols, "col_46"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_50", density_df = density_lr_est(train_lasso_cols, "col_50"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_63", density_df = density_lr_est(train_lasso_cols, "col_63"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_69", density_df = density_lr_est(train_lasso_cols, "col_69"))
+test_lasso_cols <- test_density_cols(test_lasso_cols, "col_73", density_df = density_lr_est(train_lasso_cols, "col_73"))
 
 ```
 
@@ -91,7 +120,14 @@ Now, let's fit another LASSO.
 ```{r}
 lasso_kernel_lrs <- cv.glmnet(x = as.matrix(train_lasso_cols[,-c(1:2)]), y = train$target, family = "binomial", alpha = 1, nfolds = 10)
 s = lasso_kernel_lrs$lambda.min
+s_1se = lasso_kernel_lrs$lambda.1se
 lasso_kernel_coef = predict(lasso_kernel_lrs, s = s, type = "coefficients")
+lasso_kernel_coef
+
+lasso_kernel_coef_1se = predict(lasso_kernel_lrs, s = s_1se, type = "coefficients")
+lasso_kernel_coef_1se
+
+coef(lasso_kernel_lrs)
 ```
 
 Code for writing a submission file: 
@@ -101,10 +137,5 @@ preds <- predict(lasso_kernel_lrs, s = s, newx = as.matrix(test_lasso_cols[,-1])
 
 
 submission <- data.frame(id = test$id, target = as.vector(preds))
-write_csv(submission, "kernel_lrs_submission.csv")
+write_csv(submission, "kernel_lrs_submission_to73.csv")
 ```
-
-
-
-Next thing to try: do kernel LR estimates but with all 13 or so that stay in the LASSO lambda.1se model, then try again.
-

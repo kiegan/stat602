@@ -1033,7 +1033,6 @@ A scatterplot matrix for the five different methods and the response can be seen
 ```{r, echo = F, warning = F, message = F, fig.cap = "\\label{wine-scat} A scatterplot matrix for the five different prediction methods in Problem 7."}
 wines <- read_delim("data/winequality-white.csv", delim = ";")
 
-
 # k nearest neighbors
 wineControl <- trainControl(method = "cv", number = 10)
 
@@ -1086,6 +1085,7 @@ preds_mars <- readRDS("data/preds_mars")
 wine_preds <- data.frame(quality = wines$quality, knn = preds_knn, 
                          enet = preds_enet, pcr = preds_pcr,
                          pls = preds_pls, mars = preds_mars[,1])
+
 
 wine_cor_mat <- cor(wine_preds)
 pairs(wine_preds)
