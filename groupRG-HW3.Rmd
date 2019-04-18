@@ -35,6 +35,7 @@ library(glmnet)
 library(klaR)
 library(Cubist)
 library(xgboost)
+library(caretEnsemble)
 ```
 
 # Problem 9  
@@ -117,10 +118,13 @@ y <- -1*(wine$quality <= 7) + 1*(wine$quality > 7)
 wine$y <- as.factor(y)
 train_wine <- wine[,-(ncol(wine) - 1)]
 
-# fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 5, search = "grid")
+fitControl <- trainControl(method = "repeatedcv", 
+                           number = 10, repeats = 5, search = "grid")
 # 
 # set.seed(1308)
-mods <- c("knn", "nnet", "rpart","rf", "xgbTree", "C5.0","glmnet", "stepLDA", "svmLinear", "svmPoly", "svmRadial")
+mods <- c("knn", "nnet", "rpart","rf", 
+          "xgbTree", "C5.0","glmnet", "stepLDA", 
+          "svmLinear", "svmPoly", "svmRadial")
 # preds <- list()
 # fitmod <- list()
 # for(i in 1:length(mods))
@@ -132,7 +136,8 @@ mods <- c("knn", "nnet", "rpart","rf", "xgbTree", "C5.0","glmnet", "stepLDA", "s
 # saveRDS(fitmod, file = "hw3_10_models.rda")
 fitmod <- readRDS(file = "hw3_10_models.rda")
 preds <- extractPrediction(models = fitmod)
-pred_y <- data.frame("obs" = train_wine$y, "pred" = train_wine$y, "model" = "actual", "dataType" = "Training", "object" = "none")
+pred_y <- data.frame("obs" = train_wine$y, "pred" = train_wine$y, 
+                     "model" = "actual", "dataType" = "Training", "object" = "none")
 
 preds <- rbind(preds, pred_y)
 
@@ -154,7 +159,37 @@ knitr::kable(round(pred_mat[,-ncol(pred_mat)], digits = 3))
 kiegan will do this problem
 
 # Problem 12  
+The predictors from the boosted tree, kNN, and C5.0 are all better than the worst predictors (which all had tied training error of 0.963), and seem to be the least correlated with one another. Therefore, we will include these three predictors in the generalized stacking model. The best cv error from the stacked model was $\approx 0.976$ and the best individual model had a best cv error of $\approx 0.974$. The two scores are very close, which is to be expected, as the correlation of the predictions between each of these models was still very high.
 
+```{r, eval = TRUE, echo = TRUE, message=FALSE, warning=FALSE}
+set.seed(1308)
+train_wine$target <- train_wine$y
+levels(train_wine$target) <- c("bad", "good") 
+train_wine <- train_wine[,-(ncol(train_wine) - 1)]
+# fitControl <- trainControl(method = "repeatedcv", 
+#                            number = 10, repeats = 5, search = "grid", classProbs = TRUE)
+# clist <- caretList(target ~ .,data = train_wine,
+#                    trControl = fitControl,
+#                    methodList = c("xgbTree", "C5.0", "knn"))
+# saveRDS(clist, file = "hw3_12_mod_list.rda")
 
+clist <- readRDS(file = "hw3_12_mod_list.rda")
+
+cverror <- c(clist$xgbTree$results[108,]$Accuracy,
+             clist$C5.0$results[9,]$Accuracy,
+             clist$knn$results[1,]$Accuracy)
+stackmod <- caretStack(all.models = clist, 
+                       method = "rf",
+                       metric = "Accuracy",
+                       trControl = trainControl(
+                         method = "cv",
+                         number = 10, 
+                         search = "grid"
+                       ))
+
+cverror <- c(cverror, stackmod$error[1,]$Accuracy)
+names(cverror) <- c("xgbTree","C5.0","knn", "stack")
+print(cverror)
+```
 
 
