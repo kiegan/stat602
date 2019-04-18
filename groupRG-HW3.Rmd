@@ -84,7 +84,7 @@ knitr::kable(round(pred_mat[,-ncol(pred_mat)], digits = 3))
 kiegan will do this problem
 
 # Problem 12  
-nate will do this problem  
+
 
 
 
