@@ -28,6 +28,7 @@ library(pls)
 library(reshape2)
 library(kernlab)
 library(randomForest)
+library(ranger)
 library(nnet)
 library(rpart)
 library(C50)
@@ -39,74 +40,144 @@ library(caretEnsemble)
 ```
 
 # Problem 9  
-kiegan will do this problem 
 
-```{r, echo = F, warning = F, message = F}
+The results from the predictions specified can be seen in \autoref{wines-preds}. 
+```{r, echo = F, warning = F, message = F, fig.cap = "\\label{wines-preds}Predictions from each of the prediction methods."}
 wines <- read_delim("data/winequality-white.csv", delim = ";")
 
 ## below is code from HW2... need to change "cv" to "repeatedcv" method.
 
 
 # k nearest neighbors
-wineControl <- trainControl(method = "cv", number = 10)
+wineControl <- trainControl(method = "repeatedcv", number = 10, 
+                            repeats = 5, search = "grid")
 
 wine_knn <- caret::train(form = quality~., data = wines, 
-                       method = "knn", preProcess = c("center", "scale"), 
-                       trControl = wineControl, 
-                       tuneLength = 20)
+                       method = "knn",
+                       trControl = wineControl)
 
 preds_knn <- predict(wine_knn, newdata = wines)
 
 
 # elastic net
-wine_enet <- caret::train(form = quality~., data = wines, 
-                       method = "enet", preProcess = c("center", "scale"), 
-                       trControl = wineControl, 
-                       tuneLength = 20)
+#wine_enet <- caret::train(form = quality~., data = wines, 
+#                       method = "enet",
+#                       trControl = wineControl)
 
-preds_enet <- predict(wine_enet, newdata = wines)
+#preds_enet <- predict(wine_enet, newdata = wines)
+
+#saveRDS(preds_enet, "data/preds_enet.rda")
+
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_enet <- readRDS("data/preds_enet.rda")
+
 
 # principal components regression
 wine_pcr <- caret::train(form = quality~., data = wines, 
-                       method = "pcr", preProcess = c("center", "scale"), 
-                       trControl = wineControl, 
-                       tuneLength = 20)
+                       method = "pcr",
+                       trControl = wineControl)
 
 preds_pcr <- predict(wine_pcr, newdata = wines)
+#saveRDS(preds_pcr, "data/preds_pcr.rda")
+
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_pcr <- readRDS("data/preds_pcr.rda")
 
 
 # partial least squares 
-wine_pls <- caret::train(form = quality~., data = wines, 
-                       method = "pls", preProcess = c("center", "scale"), 
-                       trControl = wineControl, 
-                       tuneLength = 20)
+#wine_pls <- caret::train(form = quality~., data = wines, 
+#                       method = "pls", 
+#                       trControl = wineControl)
 
-preds_pls <- predict(wine_pls, newdata = wines)
+#preds_pls <- predict(wine_pls, newdata = wines)
+#saveRDS(preds_pls, "data/preds_pls.rda")
 
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_pls <- readRDS("data/preds_pls.rda")
 
 # MARS
 #wine_mars <- caret::train(form = quality~., data = wines, 
-#                       method = "earth", preProcess = c("center", "scale"), 
+#                       method = "earth",
+#                       trControl = wineControl)
+
+#preds_mars <- predict(wine_mars, newdata = wines)
+#saveRDS(preds_mars, "data/preds_mars.rda")
+
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_mars <- readRDS("data/preds_mars.rda")
+
+
+# neural nets  
+#wines$quality_norm <- (wines$quality - mean(wines$quality))/sd(wines$quality)
+#wine_nnet <- caret::train(form = quality_norm~., data = data.frame(wines)[,-12], 
+#                       method = "nnet", 
+#                       trControl = wineControl)
+
+#preds_nnet <- predict(wine_nnet, newdata = data.frame(wines)[,-12])
+#preds_nnet <- (preds_nnet*sd(wines$quality)) + mean(wines$quality)
+#saveRDS(preds_nnet, "data/preds_nnet.rda")
+
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_nnet <- readRDS("data/preds_nnet")
+
+#wines <- wines[,-13]
+# regression tree
+#wine_rpart <- caret::train(form = quality~., data = data.frame(wines), 
+#                       method = "rpart",
 #                       trControl = wineControl, 
 #                       tuneLength = 20)
 
-#preds_mars <- predict(wine_mars, newdata = wines)
-#saveRDS(preds_mars, "data/preds_mars")
+#preds_rpart <- predict(wine_rpart, newdata = data.frame(wines))
+
+#saveRDS(preds_rpart, "data/preds_rpart.rda")
 
 ## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
-preds_mars <- readRDS("data/preds_mars")
+preds_rpart <- readRDS("data/preds_rpart.rda")
+
+# random forest 
+#wine_rf <- caret::train(form = quality~., data = data.frame(wines), 
+#                       method = "rf", 
+#                       trControl = wineControl, 
+#                       tuneLength = 1)
+
+#preds_rf <- predict(wine_rf, newdata = data.frame(wines))
+#saveRDS(preds_rf, "data/preds_rf.rda")
+
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_rf <- readRDS("data/preds_rf.rda")
+
+#wine_xgb <- caret::train(form = quality~., data = wines, 
+#                       method = "xgbTree",
+#                       trControl = wineControl, 
+#                       tuneLength = 1)
+
+#preds_xgb <- predict(wine_xgb, newdata = wines) 
+
+#saveRDS(preds_xgb, "data/preds_xgb.rda")
+
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_xgb <- readRDS("data/preds_xgb.rda")
+
+#wine_cubist <- caret::train(form = quality~., data = data.frame(wines), 
+#                       method = "cubist",
+#                       trControl = wineControl, 
+#                       tuneLength = 1)
+
+#preds_cubist <- predict(wine_cubist, newdata = data.frame(wines))
+#saveRDS(preds_cubist, "data/preds_cubist.rda")
+
+## This takes a long time to re-render, so I saved and re-read in the predictions to save computing whenever we render the document.
+preds_cubist <- readRDS("data/preds_cubist.rda")
 
 wine_preds <- data.frame(quality = wines$quality, knn = preds_knn, 
                          enet = preds_enet, pcr = preds_pcr,
-                         pls = preds_pls, mars = preds_mars[,1])
-
-
-
-preds_mars <- readRDS("data/preds_mars")
-
-wines_preds <- data.frame(quality = wines$quality, knn = preds_knn, 
-                         enet = preds_enet, pcr = preds_pcr,
-                         pls = preds_pls, mars = preds_mars[,1])
+                         pls = preds_pls, mars = preds_mars[,1], 
+                         nnet = preds_nnet[,1], 
+                         rpart = preds_rpart,
+                         rf = preds_rf,
+                         xgb = preds_xgb,
+                         cubist = preds_cubist)
+pairs(wine_preds)
 ```
 
 # Problem 10  
