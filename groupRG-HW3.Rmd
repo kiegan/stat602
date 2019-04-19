@@ -37,12 +37,15 @@ library(klaR)
 library(Cubist)
 library(xgboost)
 library(caretEnsemble)
+library(MLmetrics)
 ```
 
 # Problem 9  
 
-The results from the predictions specified can be seen in \autoref{wines-preds}. 
-```{r, echo = F, warning = F, message = F, fig.cap = "\\label{wines-preds}Predictions from each of the prediction methods."}
+The results from the predictions specified can be seen in \autoref{fig:wines-preds}.   
+
+
+```{r wines-preds, echo = F, warning = F, message = F, fig.cap = "\\label{wines-preds}Predictions from each of the prediction methods."}
 wines <- read_delim("data/winequality-white.csv", delim = ";")
 
 ## below is code from HW2... need to change "cv" to "repeatedcv" method.
@@ -178,6 +181,11 @@ wine_preds <- data.frame(quality = wines$quality, knn = preds_knn,
                          xgb = preds_xgb,
                          cubist = preds_cubist)
 pairs(wine_preds)
+
+```
+
+```{r, echo = F, warning = F, message = F, results = 'asis'}
+knitr::kable(round(cor(wine_preds), 2))
 ```
 
 # Problem 10  
@@ -227,7 +235,45 @@ knitr::kable(round(pred_mat[,-ncol(pred_mat)], digits = 3))
 ```
 
 # Problem 11  
-kiegan will do this problem
+
+The predictors from the random forest and cubist perform the best; however, since they are also highly correlated, we will use random forest, kNN, and MARS in the generalized stacking model. The comparative RMSPEs can be found in \autoref{rmspe-stacking}. 
+
+
+```{r, echo = F, warning = F, message = F}
+#algorithmList <- c('rf', 'knn', 'earth')
+#models <- caretList(quality~., data=wines, trControl=wineControl, methodList=algorithmList)
+#saveRDS(models, "data/hw3_problem11_models.rda")
+#models <- readRDS("data/hw3_problem11_models.rda")
+#results <- resamples(models)
+#summary(results)
+#winestackControl <- trainControl(method="repeatedcv", number=10, repeats=3)
+#winestack_rf <- caretStack(models, method="rf", metric="RMSPE", trControl=winestackControl)
+
+#winestack_preds <- predict(winestack_rf, newdata = wines)
+#saveRDS(winestack_preds, "data/winestack_preds.rda")
+
+models <- readRDS("data/hw3_problem11_models.rda")
+winestack_preds <- readRDS("data/winestack_preds.rda")
+winestack_RMSPE <- RMSPE(winestack_preds, wines$quality)
+rf_RMSPE <- RMSPE(preds_rf, wines$quality)
+knn_RMSPE <- RMSPE(preds_knn, wines$quality)
+mars_RMSPE <- RMSPE(preds_mars, wines$quality)
+```
+
+\begin{table}[]
+\centering
+\begin{tabular}{ll}
+\hline \\
+Method & RMSPE \\ \hline
+Random Forest & `r round(rf_RMSPE, 3)` \\
+K-NN & `r round(knn_RMSPE, 3)` \\
+MARS & `r round(mars_RMSPE, 3)` \\
+Generalized Stacking & `r round(winestack_RMSPE, 3)` \\
+\hline
+\end{tabular}
+\caption{Root Mean Squared Prediction Error for each method and generalized stacking.}
+\label{rmspe-stacking}
+\end{table}
 
 # Problem 12  
 The predictors from the boosted tree, kNN, and C5.0 are all better than the worst predictors (which all had tied training error of 0.963), and seem to be the least correlated with one another. Therefore, we will include these three predictors in the generalized stacking model. The best cv error from the stacked model was $\approx 0.976$ and the best individual model had a best cv error of $\approx 0.974$. The two scores are very close, which is to be expected, as the correlation of the predictions between each of these models was still very high.
