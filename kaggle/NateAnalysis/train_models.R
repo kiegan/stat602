@@ -27,3 +27,24 @@ m2 <- cv.glmnet(x = as.matrix(train_f2[,-1]), y = train_f2$target, family = "bin
 # predict.cv.glmnet(object = m2, newx = as.matrix(train_f2[,-1]), s = "lambda.min", type = "response")
 
 save(m2, file = "kaggle/NateAnalysis/m2.rda")
+
+## Models glm, knn, and xgboost using only lr features 
+train$target <- as.factor(train$target)
+levels(train$target) <- c("n","y")
+fitControl <- trainControl(method = "cv", number = 10, 
+                           classProbs = TRUE, 
+                           search = "grid", index = createFolds(y = as.factor(train$target), k = 10, returnTrain = TRUE), 
+                           savePredictions = TRUE)
+caret_mods_lrs_only <-  caretEnsemble::caretList(y = as.factor(train$target), x = lrs, methodList = mods, 
+                                       metric = "Accuracy", trControl = fitControl)
+modelCor(x = resamples(caret_mods_lrs_only))
+
+save(caret_mods_lrs_only,file =  "kaggle/NateAnalysis/caret_mods_lrs_only.rda")
+
+## ensemble these models with generalized stacking
+stacked_lrs_only <- caretEnsemble::caretStack(all.models = caret_mods_lrs_only,
+                                              method = "rf",
+                                              trControl = trainControl(method = "cv",
+                                                                       number = 10, 
+                                                                       classProbs = TRUE))
+stacked_lrs_only

@@ -1,6 +1,7 @@
 ## Explore Kaggle Don't Overfit II data
 library(caret)
 library(ggplot2)
+library(caretEnsemble)
 train <- read.csv(file = "data/train.csv", check.names = FALSE, strip.white = TRUE)
 
 
@@ -348,3 +349,55 @@ ks.test(norm_tests_c1, y = "punif")
 # 
 # ks.test(norm_tests_c0, y = "punif")
 # ks.test(norm_tests_c1, y = "punif")
+
+
+## look at distances between LR features 
+lrs <- t(apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feats2))
+colnames(lrs) <- paste("lr", relevant_cols, sep = "_")
+
+dist_lrs <- numeric()
+cls <- numeric()
+cnt <- 0
+for(i in 1:(nrow(lrs) - 1))
+{
+  for(j in (i + 1):nrow(lrs))
+  {
+    cnt <- cnt + 1
+    cls[cnt] <- 1*(train[i,]$target == train[j,]$target)
+    dist_lrs[cnt] <- sum( (lrs[i,] - lrs[j,])^2 )
+  }
+}
+
+par(mfrow = c(3,1))
+hist(dist_lrs)
+hist(dist_lrs[cls == 1])
+hist(dist_lrs[cls == 0])
+
+
+## look at how models do that only consider the lr features of interesting variables (relevant_cols)
+
+## create a feature for predictions from m2 
+lrs <- t(apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feats2))
+colnames(lrs) <- paste("lr", relevant_cols, sep = "_")
+
+train_f2 <- cbind(train[,-1], lrs)
+load(file = "kaggle/NateAnalysis/m2.rda")
+fpredsm2 <- predict.cv.glmnet(object = m2, newx = as.matrix(train_f2[,-1]), s = "lambda.min", type = "response")
+
+train$target <- as.factor(train$target)
+levels(train$target) <- c("n","y")
+# mods <- c("knn", "svmRadial", "rpart", "nnet","xgbTree")
+# mods <- c("knn", "rpart", "nnet","xgbTree", "glmnet")
+mods <- c("knn","xgbTree", "glmnet")
+
+fitControl <- trainControl(method = "cv", number = 10, p = 0.8, 
+                           classProbs = TRUE, 
+                           search = "grid", index = createFolds(y = as.factor(train$target), k = 10))
+train_mods <- caretEnsemble::caretList(y = as.factor(train$target), x = lrs, methodList = mods, 
+                                       metric = "ROC", trControl = fitControl)
+train_mods
+
+xyplot(resamples(train_mods))
+modelCor(resamples(train_mods))
+
+
