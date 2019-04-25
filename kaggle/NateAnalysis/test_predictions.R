@@ -4,6 +4,7 @@ test <- read.csv(file = "data/test.csv", check.names = FALSE, strip.white = TRUE
 ## load models
 load(file = "kaggle/NateAnalysis/m1.rda")
 load(file = "kaggle/NateAnalysis/m2.rda")
+load(file = "kaggle/NateAnalysis/stacked_rf_lrs_only.rda")
 
 
 ## feature generation
@@ -31,8 +32,19 @@ colnames(lrs_test) <- paste("lr", relevant_cols, sep = "_")
 
 test_f2 <- cbind(test[,-1], lrs_test)
 
-test_target_pred2 <- predict.cv.glmnet(m2, newx = as.matrix(x = test_f2), type = "response", s = "lambda.min")
+test_target_pred2 <- predict(m2, newdata = test_f2, type = "prob")
 
-test_sub2 <- data.frame("id" = test$id, "target" = as.numeric(test_target_pred2))
+test_sub2 <- data.frame("id" = test$id, "target" = as.numeric(test_target_pred2[,2]))
 
 write.csv(x = test_sub2, file = "kaggle/NateAnalysis/nate_sub2.csv", row.names = FALSE)
+
+
+## Stacked RF with LR feature only for 23 relevant columns
+lrs_test <- t(apply(X = test[,-c(1)], MARGIN = 1, FUN = nates_normal_loglr_feats2))
+colnames(lrs_test) <- paste("lr", relevant_cols, sep = "_")
+
+# test_f2 <- cbind(test[,-1], lrs_test)
+## I think this is predicting probability of 0
+test_target_pred3 <- 1 - predict(object = stacked_lrs_only, newdata = lrs_test, type = "prob")
+test_sub3 <- data.frame("id" = test$id, "target" = as.numeric(test_target_pred3))
+write.csv(x = test_sub3, file = "kaggle/NateAnalysis/nate_sub3.csv", row.names = FALSE)

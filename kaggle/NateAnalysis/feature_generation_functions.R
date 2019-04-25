@@ -82,7 +82,10 @@ summary(glm(formula = train$target ~ lrs))
 
 
 ## function to create kernalized features 
-kernalize_feats <- function(x, kern)
+# kernalize_feats <- function(x, kern)
+# {
+#   
+# }
 
 ## temporarily create the means based on a subset of the data since my first submission was crap
 ##    just to test things
