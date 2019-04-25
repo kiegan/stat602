@@ -1,0 +1,88 @@
+---
+title: "Stat 602 Project Report"
+author: "Kiegan Rice and Nate Garton"
+date: "Due April 24, 2019"
+output: 
+  pdf_document: 
+    fig_caption: yes
+header-includes: \usepackage{float, mathtools, accents}
+---
+
+
+\newcommand{\dbtilde}[1]{\accentset{\approx}{#1}}
+
+```{r global_options, echo = F, include = FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
+
+```{r packages, echo = F, warning = F, message = F}
+library(tidyverse)
+library(gridExtra)
+library(knitr)
+library(cvTools)
+library(class)
+library(caret)
+library(elasticnet)
+library(earth)
+library(pls)
+library(reshape2)
+library(kernlab)
+library(randomForest)
+library(ranger)
+library(nnet)
+library(rpart)
+library(C50)
+library(glmnet)
+library(klaR)
+library(Cubist)
+library(xgboost)
+library(caretEnsemble)
+library(MLmetrics)
+```
+
+# Introduction
+
+The goal of this competition was to try to train an effective binary classifier on a small training set with many predictor variables. The criteria used to determine the best solution was the area under the ROC curve generated with predictions on the test set. The training data set had dimensions $250 \times 300$, and the test data had dimensions $19750 \times 300$.    
+
+# Exploratory Data Analysis
+
+## Data Quality
+
+The quality of the data was pristine. There were no missing values in the test or training data. There was some class imbalance in the training set (roughly $64\%$ of the observations were class $1$). A $95\%$, two-sided confidence interval based on large sample normality assumptions for the population class proportion was $(0.58,0.70)$. Thus, assuming that we were truly given a random sample from the total data, it seemed unlikely that the classes were truly balanced. However, even at the upper bound of the confidence interval, the class imbalance would not likely be large enough to suggest problems with typical classification models/algorithms.
+
+## Class Conditional Distributions
+
+```{r, eval = TRUE, echo = FALSE, results = "asis", fig.cap="Class conditional histograms for column minimums, maximums, means, and standard deviations. Each row contains the column distribution for these four summary statistics for one of the two classes."}
+train <- read.csv(file = "data/train.csv", check.names = FALSE, strip.white = TRUE)
+train_c0 <- train[train$target == 0,]
+train_c1 <- train[train$target == 1,]
+## class 0
+mins_c0 <- (apply(X = as.matrix(train_c0[,-c(1:2)]), MARGIN = 2, FUN = min))
+maxs_c0 <- (apply(X = as.matrix(train_c0[,-c(1,2)]), MARGIN = 2, FUN = max))
+means_c0 <- (apply(X = as.matrix(train_c0[,-c(1,2)]), MARGIN = 2, FUN = mean)) ## looks suspiciously like iid normal
+sds_c0 <- (apply(X = as.matrix(train_c0[,-c(1,2)]), MARGIN = 2, FUN = sd)) ## most columns have sd = 1
+
+
+## class 1
+mins_c1 <- (apply(X = as.matrix(train_c1[,-c(1:2)]), MARGIN = 2, FUN = min))
+maxs_c1 <- (apply(X = as.matrix(train_c1[,-c(1,2)]), MARGIN = 2, FUN = max))
+means_c1 <- (apply(X = as.matrix(train_c1[,-c(1,2)]), MARGIN = 2, FUN = mean)) ## looks suspiciously like iid normal
+sds_c1 <- (apply(X = as.matrix(train_c1[,-c(1,2)]), MARGIN = 2, FUN = sd)) ## most columns have sd = 1
+
+## create data frame with the above info
+mins <- c(mins_c0, mins_c1)
+maxs <- c(maxs_c0, maxs_c1)
+means <- c(means_c0, means_c1)
+sds <- c(sds_c0, sds_c1)
+
+summary_df_wide <- data.frame("predictor" = rep(1:300, times = 2), "cls" = factor(rep(c(0,1), each = 300)), 
+                              "mins" = mins, "maxs" = maxs, "means" = means, "sds" = sds)
+
+summary_df_long <- reshape(data = summary_df_wide, varying = c("mins","maxs","means","sds"),v.names = "value", direction = "long", timevar = "stat", times = c("mins","maxs","means","sds"))
+
+summary_hist <- ggplot(data = summary_df_long) +
+  geom_histogram(mapping = aes(x = value), bins = 20) +
+  facet_grid(rows = vars(cls), cols = vars(stat), scales = "free_x") +
+  theme_bw()
+summary_hist
+```
