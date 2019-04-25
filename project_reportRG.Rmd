@@ -1,14 +1,13 @@
 ---
 title: "Stat 602 Project Report"
 author: "Kiegan Rice and Nate Garton"
-date: "Due April 24, 2019"
+date: "Due ???"
 output: 
   pdf_document: 
     fig_caption: yes
-header-includes: 
-  - \usepackage{float, mathtools, accents}
-  - \usepackage{setspace}
-  - \onehalfspacing
+header-includes: \usepackage{float, mathtools, accents}
+  \usepackage{setspace}
+  \linespread{1.25} 
 ---
 
 
@@ -55,6 +54,8 @@ The quality of the data was pristine. There were no missing values in the test o
 
 ## Class Conditional Distributions
 
+Because there are so many predictor variables, it is hard to pull useful information from tables of numerical summaries. Figure 1 presents histograms of four summary statistics: minimums, maximums, means, and standard deviations for each column conditional on the class. We can see that the ranges of all of the columns are similar between and within each class. We can also see that columns means for both classes are centered at zero and look fairly Gaussian. There may be one or two "outlier" means in class $0$ that are unusually small, but given the number of columns in the data, it was not immediately clear to us that this wasn't simply an artifact of randomly sampled data. Standard deviations for both classes are centered at 1, and most standard deviations for both classes are between $0.9$ and $1.1$. 
+
 ```{r, eval = TRUE, echo = FALSE, results = "asis", fig.cap="Class conditional histograms for column minimums, maximums, means, and standard deviations. Each row contains the column distribution for these four summary statistics for one of the two classes."}
 train <- read.csv(file = "kaggle/data/train.csv", check.names = FALSE, strip.white = TRUE)
 train_c0 <- train[train$target == 0,]
@@ -89,3 +90,5 @@ summary_hist <- ggplot(data = summary_df_long) +
   theme_bw()
 summary_hist
 ```
+
+The behavior of these summary statistics seems consistent with data where most columns are $N(0,1)$. More here about testing normality... look at correlations... look at t-tests between column means
