@@ -93,9 +93,9 @@ summary_hist
 
 The behavior of these summary statistics seems consistent with data where most columns are $N(0,1)$. With this in mind, we performed the Shapiro-Wilk test for normality on each column for each class. Assuming that the columns are independent for both classes, the distribution of p-values for each class should be approximately uniform. To test this, we performed Kolmogorov-Smirnov (KS) tests for the p-values from the Shapiro-Wilk tests. The two p-values from the (KS) tests were $\approx 0.904$ and $\approx 0.997$ for classes 0 and 1, respectively. This led us to believe that assuming the normality of the predictor variables was likely reasonable. 
 
-If we could also conclude that the predictor variables within each class were uncorrelated, then this would allow us to effectively model the class conditional densities. To assess this, we first looked at histograms of the correlations. 
+If we could also conclude that the predictor variables within each class were uncorrelated, then this would allow us to effectively model the class conditional densities. To assess this, we first looked at histograms of the correlations. Figure 2 shows histograms of column correlations within each class. We see that both distributions are centered at essentially zero and appear to have a bell shape. Such a pattern is consistent with the sampling distribution of the correlation between two uncorrelated Gaussian random variables. The distribution of correlations for class $0$ appears to be a bit more diffuse, but it is unclear exactly what to make of that. We performed z-tests after using the Fisher transformation for each correlation and then performed the KS test to test whether the p-value distributions for each class were close to uniform. The p-values from these tests were $\approx 0.113$ and $\approx 0.905$ for class $0$ and class $1$, respectively. We take these tests with a grain of salt because the correlations used in the test are not independent. However, if there were a handful of high correlations between several predictor variables, we might expect to see more p-values near 0. Finally, the fact that the correlation distribution for class $0$ seems more diffuse than class $1$ suggests that there might be some subtle differences in correlation structure between the two classes. However, performing a two-sample KS test comparing the correlation distributions between the classes results in a p-value of $\approx 0.251$. Again, the assumption of independence is violated, so we take this with a grain of salt. But, this serves to reinforce the idea that any difference in correlation structure between the two classes is subtle, if it exists.
 
-```{r, eval = TRUE, echo = FALSE, results = "asis"}
+```{r, eval = TRUE, echo = FALSE, results = "asis", fig.cap="Histograms of column correlations for each class."}
 ## look at correlations
 cor_c0 <- numeric()
 cor_c1 <- numeric()
@@ -115,11 +115,21 @@ for(i in 1:(ncol(train[,-c(1,2)]) - 1))
   }
 }
 
-hist(cor_c0)
-hist(cor_c1)
-mean(cor_c0)
-mean(cor_c1)
-ks.test(x = cor_test_c0, y = "punif")
-ks.test(x = cor_test_c1, y = "punif")
+# hist(cor_c0)
+# hist(cor_c1)
+# mean(cor_c0)
+# mean(cor_c1)
+# ks.test(x = cor_test_c0, y = "punif")
+# ks.test(x = cor_test_c1, y = "punif")
+# ks.test(x = cor_test_c0, y = cor_test_c1)
+
+cor_df <- data.frame("cls" = rep(c(0,1), each = length(cor_c0)),
+                     "correlation" = c(cor_c0,cor_c1))
+cor_hist <- ggplot(cor_df) +
+  geom_histogram(mapping = aes(x = correlation), bins = 20) +
+  facet_grid(rows = vars(cls)) + 
+  theme_bw()
+cor_hist
 ```
-look at correlations... look at t-tests between column means
+
+look at t-tests between column means
