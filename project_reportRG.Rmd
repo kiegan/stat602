@@ -91,4 +91,35 @@ summary_hist <- ggplot(data = summary_df_long) +
 summary_hist
 ```
 
-The behavior of these summary statistics seems consistent with data where most columns are $N(0,1)$. More here about testing normality... look at correlations... look at t-tests between column means
+The behavior of these summary statistics seems consistent with data where most columns are $N(0,1)$. With this in mind, we performed the Shapiro-Wilk test for normality on each column for each class. Assuming that the columns are independent for both classes, the distribution of p-values for each class should be approximately uniform. To test this, we performed Kolmogorov-Smirnov (KS) tests for the p-values from the Shapiro-Wilk tests. The two p-values from the (KS) tests were $\approx 0.904$ and $\approx 0.997$ for classes 0 and 1, respectively. This led us to believe that assuming the normality of the predictor variables was likely reasonable. 
+
+If we could also conclude that the predictor variables within each class were uncorrelated, then this would allow us to effectively model the class conditional densities. To assess this, we first looked at histograms of the correlations. 
+
+```{r, eval = TRUE, echo = FALSE, results = "asis"}
+## look at correlations
+cor_c0 <- numeric()
+cor_c1 <- numeric()
+cor_test_c0 <- numeric()
+cor_test_c1 <- numeric()
+counter <- 0
+for(i in 1:(ncol(train[,-c(1,2)]) - 1))
+{
+  # print(i)
+  for(j in (i + 1):ncol(train[,-c(1,2)]))
+  {
+    counter <- counter + 1
+    cor_c0[counter] <- cor(x = train_c0[,i + 2], y = train_c0[,j + 2])
+    cor_c1[counter] <- cor(x = train_c1[,i + 2], y = train_c1[,j + 2])
+    cor_test_c0[counter] <- 2 * (1 - pt(q = abs(cor_c0[counter]) * sqrt(nrow(train_c0) - 2) / sqrt(1 - cor_c0[counter]^2), df = nrow(train_c0) - 2))
+    cor_test_c1[counter] <- 2 * (1 - pt(q = abs(cor_c1[counter]) * sqrt(nrow(train_c1) - 2) / sqrt(1 - cor_c1[counter]^2), df = nrow(train_c1) - 2))
+  }
+}
+
+hist(cor_c0)
+hist(cor_c1)
+mean(cor_c0)
+mean(cor_c1)
+ks.test(x = cor_test_c0, y = "punif")
+ks.test(x = cor_test_c1, y = "punif")
+```
+look at correlations... look at t-tests between column means

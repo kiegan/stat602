@@ -337,18 +337,18 @@ hist(norm_tests_c1)
 ks.test(norm_tests_c0, y = "punif")
 ks.test(norm_tests_c1, y = "punif")
 
-## normality test for all columns (yes everything looks normal)
-# norm_tests_c0 <- numeric()
-# norm_tests_c1 <- numeric()
-# for(i in 1:300){
-#   norm_tests_c0[i] <- shapiro.test(x = train_c0[,i + 2])$p.value
-#   norm_tests_c1[i] <- shapiro.test(x = train_c1[,i + 2])$p.value
-# }
-# hist(norm_tests_c0)
-# hist(norm_tests_c1)
-# 
-# ks.test(norm_tests_c0, y = "punif")
-# ks.test(norm_tests_c1, y = "punif")
+# normality test for all columns (yes everything looks normal)
+norm_tests_c0 <- numeric()
+norm_tests_c1 <- numeric()
+for(i in 1:300){
+  norm_tests_c0[i] <- shapiro.test(x = train_c0[,i + 2])$p.value
+  norm_tests_c1[i] <- shapiro.test(x = train_c1[,i + 2])$p.value
+}
+hist(norm_tests_c0)
+hist(norm_tests_c1)
+
+ks.test(norm_tests_c0, y = "punif")
+ks.test(norm_tests_c1, y = "punif")
 
 
 ## look at distances between LR features 
