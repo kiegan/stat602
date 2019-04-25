@@ -5,7 +5,10 @@ date: "Due April 24, 2019"
 output: 
   pdf_document: 
     fig_caption: yes
-header-includes: \usepackage{float, mathtools, accents}
+header-includes: 
+  - \usepackage{float, mathtools, accents}
+  - \usepackage{setspace}
+  - \onehalfspacing
 ---
 
 
@@ -53,7 +56,7 @@ The quality of the data was pristine. There were no missing values in the test o
 ## Class Conditional Distributions
 
 ```{r, eval = TRUE, echo = FALSE, results = "asis", fig.cap="Class conditional histograms for column minimums, maximums, means, and standard deviations. Each row contains the column distribution for these four summary statistics for one of the two classes."}
-train <- read.csv(file = "data/train.csv", check.names = FALSE, strip.white = TRUE)
+train <- read.csv(file = "kaggle/data/train.csv", check.names = FALSE, strip.white = TRUE)
 train_c0 <- train[train$target == 0,]
 train_c1 <- train[train$target == 1,]
 ## class 0
