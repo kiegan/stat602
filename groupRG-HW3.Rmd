@@ -1,7 +1,7 @@
 ---
 title: "Stat 602 Homework 3"
 author: "Kiegan Rice and Nate Garton"
-date: "Due ??"
+date: "Due April 24, 2019"
 output: 
   pdf_document: 
     fig_caption: yes
@@ -42,7 +42,7 @@ library(MLmetrics)
 
 # Problem 9  
 
-The results from the predictions specified can be seen in \autoref{fig:wines-preds}.   
+The results from the predictions specified can be seen in \autoref{wines-preds}.
 
 
 ```{r wines-preds, echo = F, warning = F, message = F, fig.cap = "\\label{wines-preds}Predictions from each of the prediction methods."}
@@ -191,7 +191,7 @@ knitr::kable(round(cor(wine_preds), 2))
 # Problem 10  
 Shown below is the matrix of the proportion of predictions that agree between any two methods. The row and column labeled "actual" corresponds to the true data label.  
 
-```{r, eval = TRUE, echo = TRUE, results = 'asis', message=FALSE, warning=FALSE}
+```{r, eval = TRUE, echo = F, results = 'asis', message=FALSE, warning=FALSE}
 wine <- read.csv(file = "data/winequality-white.csv", sep = ";", check.names = TRUE)
 y <- -1*(wine$quality <= 7) + 1*(wine$quality > 7)
 wine$y <- as.factor(y)
@@ -278,7 +278,7 @@ Generalized Stacking & `r round(winestack_RMSPE, 3)` \\
 # Problem 12  
 The predictors from the boosted tree, kNN, and C5.0 are all better than the worst predictors (which all had tied training error of 0.963), and seem to be the least correlated with one another. Therefore, we will include these three predictors in the generalized stacking model. The best cv error from the stacked model was $\approx 0.976$ and the best individual model had a best cv error of $\approx 0.974$. The two scores are very close, which is to be expected, as the correlation of the predictions between each of these models was still very high.
 
-```{r, eval = TRUE, echo = TRUE, message=FALSE, warning=FALSE}
+```{r, eval = TRUE, echo = F, message=FALSE, warning=FALSE}
 set.seed(1308)
 train_wine$target <- train_wine$y
 levels(train_wine$target) <- c("bad", "good") 
