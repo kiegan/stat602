@@ -135,7 +135,7 @@ cor_hist
 ```
 
 
-Visually investigating class-conditional densities for each column also gives a good look at columns where there may be some slight separation between the two response classes, seen in \autoref{cc-densities}. However, additional statistical tests should be done to assess whether the densities are significantly different, especially since we have such a large number of columns. Some visual separation could be an artifact of random sampling for the training set. 
+Visually investigating class-conditional densities for each column also gives a good look at columns where there may be some slight separation between the two response classes, seen in \autoref{cc-densities}. However, additional statistical tests should be done to assess whether the densities are significantly different, especially since we have such a large number of columns. Some visual separation could be an artifact of random sampling for the training set.  
 
 
 ```{r, echo = F, warning = F, message = F, fig.cap = "\\label{cc-densities}Example of class-conditional densities for several columns in the dataset. The first row shows class-conditional densities that do not demonstrate any separation, which is very common in the dataset. The bottom row demonstrates class-conditional densities observed in the training data which seem to show separation.", fig.width = 7, fig.height = 4}
@@ -156,6 +156,19 @@ train %>%
 
 
 look at t-tests between column means
+
+# Feature Engineering  
+
+Creative feature engineering proved particularly difficult for this problem, especially due to the murky nature of the data. While data were pristine in the sense of completeness, the lack of contextual information about predictors makes context-based feature engineering impossible. The large number of predictors also poses the challenge of weeding out noise without removing useful information; dimension reduction plays the first big role in constructing a good set of features.  
+
+LASSO is a natural choice for dimension reduction here, as it will shrink many predictor parameter estimates to zero in favor of those that more adequately describe the response variable. A logistic regression LASSO model using all 300 predictors was fit using the `glmnet` package, in particular, the `cv.glmnet` function with $\alpha = 1$.  
+
+
+
+# Prediction Methods  
+
+# Conclusions  
+
 
 
 
