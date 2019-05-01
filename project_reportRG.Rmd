@@ -5,12 +5,13 @@ date: "Due ???"
 output: 
   pdf_document: 
     fig_caption: yes
-header-includes: \usepackage{float, mathtools, accents}
+header-includes: \usepackage{float, mathtools, accents, xcolor}
   \usepackage{setspace}
   \linespread{1.25} 
 ---
 
-
+\newcommand{\nate}[1]{{\color{olive}{#1}}}
+\newcommand{\kiegan}[1]{{\color{teal}{#1}}}
 \newcommand{\dbtilde}[1]{\accentset{\approx}{#1}}
 
 ```{r global_options, echo = F, include = FALSE}
@@ -161,11 +162,23 @@ look at t-tests between column means
 
 Creative feature engineering proved particularly difficult for this problem, especially due to the murky nature of the data. While data were pristine in the sense of completeness, the lack of contextual information about predictors makes context-based feature engineering impossible. The large number of predictors also poses the challenge of weeding out noise without removing useful information; dimension reduction plays the first big role in constructing a good set of features.  
 
-LASSO is a natural choice for dimension reduction here, as it will shrink many predictor parameter estimates to zero in favor of those that more adequately describe the response variable. A logistic regression LASSO model using all 300 predictors was fit using the `glmnet` package, in particular, the `cv.glmnet` function with $\alpha = 1$.  
+LASSO is a natural choice for dimension reduction here, as it will shrink many predictor parameter estimates to zero in favor of those that more adequately describe the response variable. A logistic regression LASSO model using all 300 predictors was fit using the `glmnet` package, in particular, the `cv.glmnet` function with $\alpha = 1$. Columns with non-zero parameter values in the $\lambda_{1se}$ model were kept for future modeling and feature engineering, while the others were removed from consideration.  
+
+## Likelihood Ratios as Features  
+
+Our team considered two different approaches to using likelihood ratios as features: a kernel density estimate approach, and an assumed normal distribution approach.  
+
+\kiegan{I thought it would be good to have me first describe the kernel density approach, and then you describe the assumed normal distribution approach, and maybe do some plots comparing our two sets of estimated densities. If I can find it in your code, I can just come up with these plots.}
+
+## Clustering  
 
 
 
 # Prediction Methods  
+
+With a final set of features, we can try multiple methods for final class predictions.  
+
+## Random Forest 
 
 # Conclusions  
 
