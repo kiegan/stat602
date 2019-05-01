@@ -50,13 +50,15 @@ The goal of this competition was to try to train an effective binary classifier 
 
 ## Data Quality
 
-The quality of the data was pristine. There were no missing values in the test or training data. There was some class imbalance in the training set (roughly $64\%$ of the observations were class $1$). A $95\%$, two-sided confidence interval based on large sample normality assumptions for the population class proportion was $(0.58,0.70)$. Thus, assuming that we were truly given a random sample from the total data, it seemed unlikely that the classes were truly balanced. However, even at the upper bound of the confidence interval, the class imbalance would not likely be large enough to suggest problems with typical classification models/algorithms.
+The quality of the data was pristine. There were no missing values in the test or training data. There was some class imbalance in the training set (roughly $64\%$ of the observations were class $1$). A $95\%$, two-sided confidence interval based on large sample normality assumptions for the population class proportion was $(0.58,0.70)$. Thus, assuming that we were truly given a random sample from the total data, it seemed unlikely that the classes were truly balanced. However, even at the upper bound of the confidence interval, the class imbalance would not likely be large enough to suggest problems with typical classification models/algorithms.  
+
+There were 300 predictor columns given; however, there was no contextual information given about the predictors or the response. There was no information on whether columns represented any particular measured quantity, and each column was simply named $'0', '1', '2', \dots, '299'$. This makes exploratory data analysis particularly difficult, especially since significant dimension reduction needs to occur to avoid overfitting to noise in the data, and since the training data set only has 250 cases. One clear approach in this scenario is to investigate distributions of each predictor variable, particularly class-conditional distributions since we are working with a classification problem.  
 
 ## Class Conditional Distributions
 
 Because there are so many predictor variables, it is hard to pull useful information from tables of numerical summaries. Figure 1 presents histograms of four summary statistics: minimums, maximums, means, and standard deviations for each column conditional on the class. We can see that the ranges of all of the columns are similar between and within each class. We can also see that columns means for both classes are centered at zero and look fairly Gaussian. There may be one or two "outlier" means in class $0$ that are unusually small, but given the number of columns in the data, it was not immediately clear to us that this wasn't simply an artifact of randomly sampled data. Standard deviations for both classes are centered at 1, and most standard deviations for both classes are between $0.9$ and $1.1$. 
 
-```{r, eval = TRUE, echo = FALSE, results = "asis", fig.cap="Class conditional histograms for column minimums, maximums, means, and standard deviations. Each row contains the column distribution for these four summary statistics for one of the two classes."}
+```{r, eval = TRUE, echo = FALSE, results = "asis", fig.cap="Class conditional histograms for column minimums, maximums, means, and standard deviations. Each row contains the column distribution for these four summary statistics for one of the two classes.", fig.width=6, fig.height=4}
 train <- read.csv(file = "kaggle/data/train.csv", check.names = FALSE, strip.white = TRUE)
 train_c0 <- train[train$target == 0,]
 train_c1 <- train[train$target == 1,]
@@ -95,7 +97,7 @@ The behavior of these summary statistics seems consistent with data where most c
 
 If we could also conclude that the predictor variables within each class were uncorrelated, then this would allow us to effectively model the class conditional densities. To assess this, we first looked at histograms of the correlations. Figure 2 shows histograms of column correlations within each class. We see that both distributions are centered at essentially zero and appear to have a bell shape. Such a pattern is consistent with the sampling distribution of the correlation between two uncorrelated Gaussian random variables. The distribution of correlations for class $0$ appears to be a bit more diffuse, but it is unclear exactly what to make of that. We performed z-tests after using the Fisher transformation for each correlation and then performed the KS test to test whether the p-value distributions for each class were close to uniform. The p-values from these tests were $\approx 0.113$ and $\approx 0.905$ for class $0$ and class $1$, respectively. We take these tests with a grain of salt because the correlations used in the test are not independent. However, if there were a handful of high correlations between several predictor variables, we might expect to see more p-values near 0. Finally, the fact that the correlation distribution for class $0$ seems more diffuse than class $1$ suggests that there might be some subtle differences in correlation structure between the two classes. However, performing a two-sample KS test comparing the correlation distributions between the classes results in a p-value of $\approx 0.251$. Again, the assumption of independence is violated, so we take this with a grain of salt. But, this serves to reinforce the idea that any difference in correlation structure between the two classes is subtle, if it exists.
 
-```{r, eval = TRUE, echo = FALSE, results = "asis", fig.cap="Histograms of column correlations for each class."}
+```{r, eval = TRUE, echo = FALSE, results = "asis", fig.cap="Histograms of column correlations for each class.", fig.width = 6, fig.height=4}
 ## look at correlations
 cor_c0 <- numeric()
 cor_c1 <- numeric()
@@ -132,4 +134,28 @@ cor_hist <- ggplot(cor_df) +
 cor_hist
 ```
 
+
+Visually investigating class-conditional densities for each column also gives a good look at columns where there may be some slight separation between the two response classes, seen in \autoref{cc-densities}. However, additional statistical tests should be done to assess whether the densities are significantly different, especially since we have such a large number of columns. Some visual separation could be an artifact of random sampling for the training set. 
+
+
+```{r, echo = F, warning = F, message = F, fig.cap = "\\label{cc-densities}Example of class-conditional densities for several columns in the dataset. The first row shows class-conditional densities that do not demonstrate any separation, which is very common in the dataset. The bottom row demonstrates class-conditional densities observed in the training data which seem to show separation.", fig.width = 7, fig.height = 4}
+
+plot_cols <- c(15, 84, 128, 260, 33, 65, 117, 217)
+# no sep: 260, 128, 15, 84
+# sep: 33, 65, 91, 117, 217
+train %>% 
+  gather(plot_cols+3, key = "col_num", value = "value") %>%
+  mutate(col_num = factor(col_num, levels = c("15", "84", "128", "260", "33", "65", "117", "217"))) %>%
+  ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
+  facet_wrap(~col_num, nrow = 2) + 
+  theme_bw() + 
+  scale_fill_discrete(name = "Response Class") + 
+  labs(x = "Value", y = "Density")
+  
+```
+
+
 look at t-tests between column means
+
+
+
