@@ -138,7 +138,7 @@ cor_hist
 Visually investigating class-conditional densities for each column also gives a good look at columns where there may be some slight separation between the two response classes, seen in \autoref{cc-densities}. However, additional statistical tests should be done to assess whether the densities are significantly different, especially since we have such a large number of columns. Some visual separation could be an artifact of random sampling for the training set.  
 
 
-```{r, echo = F, warning = F, message = F, fig.cap = "\\label{cc-densities}Example of class-conditional densities for several columns in the dataset. The first row shows class-conditional densities that do not demonstrate any separation, which is very common in the dataset. The bottom row demonstrates class-conditional densities observed in the training data which seem to show separation.", fig.width = 7, fig.height = 4}
+```{r, echo = F, warning = F, message = F, fig.cap = "\\label{cc-densities}Example of class-conditional densities for several columns in the dataset. The first row shows class-conditional densities that do not demonstrate any separation, which is very common in the dataset. The bottom row demonstrates class-conditional densities observed in the training data which seem to show separation.", fig.width = 7, fig.height = 3}
 
 plot_cols <- c(15, 84, 128, 260, 33, 65, 117, 217)
 # no sep: 260, 128, 15, 84
