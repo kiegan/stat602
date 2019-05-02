@@ -23,33 +23,39 @@ colnames(lrs) <- paste("lr", relevant_cols, sep = "_")
 train_f2 <- cbind(train[,-1], lrs)
 train_f2$target <- as.factor(train_f2$target)
 levels(train_f2$target) <- c("n","y")
-# m2 <- cv.glmnet(x = as.matrix(train_f2[,-1]), y = train_f2$target, family = "binomial", type.measure = "auc")
-# summary(m2)
+m2 <- cv.glmnet(x = as.matrix(train_f2[,-1]), y = train_f2$target, family = "binomial", type.measure = "auc")
+summary(m2)
+m2$glmnet.fit
+coefficients(m2, lambda = "lambda.min")
 
 # train_preds_m2 <- predict.cv.glmnet(object = m2, newx = as.matrix(train_f2[,-1]), s = "lambda.min", type = "response")
 # table(1 * (train_preds_m2 > 0.5), train_f2$target)
 # 35 / nrow(train_preds_m2)
 
-fitControl1 <- trainControl(method = "repeatedcv", number = 5, repeats = 10, 
-                           classProbs = TRUE, 
-                           search = "grid", index = createFolds(y = train_f2$target, k = 5, returnTrain = TRUE), 
-                           savePredictions = TRUE)
-caret_mods <-  caretEnsemble::caretList(y = train_f2$target, x = train_f2[,-1], methodList = mods, 
-                                                 metric = "Accuracy", trControl = fitControl1)
-caret_mods
-
-m2 <- caret::train(x = train_f2[,-1], y = train_f2$target, 
-                   method = "glmnet", metric = "Accuracy",
-                   trControl = trainControl(method = "repeatedcv", number = 5, repeats = 10, search = "grid"),
-                   tuneGrid = expand.grid(alpha = seq(from = 0.05, to = 1, by = 0.05),
-                                          lambda = seq(from = 0.01, to = 0.1, by = 0.01)))
-m2
-m2$results
-
-train_preds <- predict(object = m2, newdata = train_f2[,-1], type = "prob")[,2]
-roc(response = train$target, predictor = train_preds)
+# fitControl1 <- trainControl(method = "repeatedcv", number = 5, repeats = 10, 
+#                            classProbs = TRUE, 
+#                            search = "grid", index = createFolds(y = train_f2$target, k = 5, returnTrain = TRUE), 
+#                            savePredictions = TRUE)
+# caret_mods <-  caretEnsemble::caretList(y = train_f2$target, x = train_f2[,-1], methodList = mods, 
+#                                                  metric = "Accuracy", trControl = fitControl1)
+# caret_mods
+# 
+# m2 <- caret::train(x = train_f2[,-1], y = train_f2$target, 
+#                    method = "glmnet", metric = "Accuracy",
+#                    trControl = trainControl(method = "repeatedcv", number = 5, repeats = 10, search = "grid"),
+#                    tuneGrid = expand.grid(alpha = seq(from = 0.05, to = 1, by = 0.05),
+#                                           lambda = seq(from = 0.01, to = 0.1, by = 0.01)))
+# m2
+# m2$results
+# 
+# train_preds <- predict(object = m2, newdata = train_f2[,-1], type = "prob")[,2]
+# roc(response = train$target, predictor = train_preds)
 
 save(m2, file = "kaggle/NateAnalysis/m2.rda")
+
+## try glm with just variables 33 and 65
+m2.1 <- glm(formula = target ~ `33` + `65`, family = "binomial", data = train_f2)
+save(m2.1, file = "kaggle/NateAnalysis/m2_1.rda")
 
 ## Models glmnet, knn, and xgboost using only lr features 
 ## xgbTree, glmnet, and knn seem to work reasonably well
