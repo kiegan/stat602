@@ -1,0 +1,287 @@
+---
+title: "data-features"
+author: "Kiegan Rice"
+output: html_document
+---
+
+
+```{r, echo = F, warning = F, message = F}
+library(tidyverse)
+library(gridExtra)
+library(matrixStats)
+library(glmnet)
+
+train <- read_csv("../data/train.csv")
+test <- read_csv("../data/test.csv")
+all <- full_join(train, test)
+
+```
+
+First, an LR estimate based on all columns, allowing columns 33 and 65 to have differing distributions based on class. (code from Nate).  
+
+```{r, echo = F, warning = F, message = F}
+nates_normal_loglr_feat <- function(x, mu0, mu1, prior_c0, prior_c1)
+{
+  x <- as.numeric(x)
+  lr <- mvtnorm::dmvnorm(x = x , mean = mu1, sigma = diag(length(x)), log = TRUE) - 
+    mvtnorm::dmvnorm(x = x , mean = mu0, sigma = diag(length(x)), log = TRUE) - 
+    log(prior_c1/prior_c0)
+  
+  return(lr)
+}
+
+
+train_c0 <- train[train$target == 0,]
+train_c1 <- train[train$target == 1,]
+
+## create likelihood ratio based on multivariate normal modeling where variables "33", "65" have unique means but 
+##  remaining means are the same within a class
+
+## actual feature generation not test code
+mu_c0_33 <- mean(train_c0$`33`)
+mu_c0_65 <- mean(train_c0$`65`)
+mu_c1_33 <- mean(train_c1$`33`)
+mu_c1_65 <- mean(train_c1$`65`)
+
+mu_c0_remain <- mean(apply(X = train_c0[,-c(1,2, 34 + 2,66 + 2)], MARGIN = 2, FUN = mean))
+mu_c1_remain <- mean(apply(X = train_c1[,-c(1,2, 34 + 2,66 + 2)], MARGIN = 2, FUN = mean))
+
+mod_mu_c0 <- numeric()
+mod_mu_c1 <- numeric()
+for(i in 1:300)
+{
+  mod_mu_c0[i] <- ifelse(test = i == 34, yes = mu_c0_33, 
+                         no = ifelse(test = i == 66, yes = mu_c0_65, no = mu_c0_remain))
+  mod_mu_c1[i] <- ifelse(test = i == 34, yes = mu_c1_33, 
+                         no = ifelse(test = i == 66, yes = mu_c1_65, no = mu_c1_remain))
+}
+
+
+f1 <- apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feat,
+            mu0 = mod_mu_c0, mu1 = mod_mu_c1, prior_c0 = 90/250, prior_c1 = 160/250)
+
+train$nate_lr <- f1
+
+f2 <- apply(X = test[,-1], MARGIN = 1, FUN = nates_normal_loglr_feat,
+            mu0 = mod_mu_c0, mu1 = mod_mu_c1, prior_c0 = 90/250, prior_c1 = 160/250)
+
+test$nate_lr <- f2
+```
+
+Next, a LASSO for dimension reduction.  
+
+```{r, echo = F, warning = F, message = F}
+lasso_train <- cv.glmnet(x = as.matrix(train[,3:303]), y = train$target, family = "binomial", alpha = 1, nfolds = 10)
+s = lasso_train$lambda.min
+s_1se = lasso_train$lambda.1se
+lasso.coef = predict(lasso_train, s = s, type = "coefficients")
+lasso.coef
+
+#to keep: cols 33, 65, 30, 43, 73, 80, 82, 90, 91, 114, 117, 133, 168, 189, 194, 199, 217, 221, 226, 252, 258, 295, 298, nate_lr
+```
+
+
+Next, kernel density estimated LR's.  First, we'll define some functions for it. 
+```{r, echo = F, warning = F, message = F}
+density_lr <- function(dataset, col_name){
+  class0 <- dataset[dataset$col_target == 0,]
+  class1 <- dataset[dataset$col_target == 1,]
+  
+  class0_density <- density(class0[,col_name])
+  class1_density <- density(class1[,col_name])
+  
+  lr_density <- log(class1_density$y/class0_density$y)
+  
+  new_col <- paste0("kernel_lr_", col_name)
+  
+  for(i in 1:nrow(dataset)){
+    dataset[i,new_col] <- lr_density[which.min(abs(dataset[i, col_name] - class0_density$x))]
+  }
+  return(dataset)
+}
+
+density_lr_est <- function(dataset, col_name){
+  class0 <- dataset[dataset$col_target == 0,]
+  class1 <- dataset[dataset$col_target == 1,]
+  
+  class0_density <- density(class0[,col_name])
+  class1_density <- density(class1[,col_name])
+  
+  lr_density <- log(class1_density$y/class0_density$y)
+  
+  return(data.frame(density_x = class0_density$x, density_lr = lr_density))
+}
+
+test_density_cols <- function(dataset_test, col_name, density_df){
+  new_col <- paste0("kernel_lr_", col_name)
+  for(i in 1:nrow(dataset_test)){
+    dataset_test[i,new_col] <- density_df$density_lr[which.min(abs(dataset_test[i,col_name] - density_df$density_x))]
+  }
+  return(dataset_test)
+}
+
+```
+
+Now, we'll actually apply it to the relevant columns. 
+
+```{r}
+## function to compute univariate, normal LRs for relevant columns
+load(file = "../NateAnalysis/interesting_columns.rda")
+
+train_reduced <- as.data.frame(train[,c(1:2, relevant_cols+3, 303)])
+test_reduced <- as.data.frame(test[,c(1, relevant_cols+2, 302)])
+
+names(train_reduced) <- paste0("col_", names(train_reduced))
+names(test_reduced) <- paste0("col_", names(test_reduced))
+
+train_reduced <- density_lr(train_reduced, "col_33")
+train_reduced <- density_lr(train_reduced, "col_65")
+train_reduced <- density_lr(train_reduced, "col_30")
+train_reduced <- density_lr(train_reduced, "col_43")
+train_reduced <- density_lr(train_reduced, "col_73")
+train_reduced <- density_lr(train_reduced, "col_80")
+train_reduced <- density_lr(train_reduced, "col_82")
+train_reduced <- density_lr(train_reduced, "col_90")
+train_reduced <- density_lr(train_reduced, "col_91")
+train_reduced <- density_lr(train_reduced, "col_114")
+train_reduced <- density_lr(train_reduced, "col_117")
+train_reduced <- density_lr(train_reduced, "col_133")
+train_reduced <- density_lr(train_reduced, "col_168")
+train_reduced <- density_lr(train_reduced, "col_189")
+train_reduced <- density_lr(train_reduced, "col_194")
+train_reduced <- density_lr(train_reduced, "col_199")
+train_reduced <- density_lr(train_reduced, "col_217")
+train_reduced <- density_lr(train_reduced, "col_221")
+train_reduced <- density_lr(train_reduced, "col_226")
+train_reduced <- density_lr(train_reduced, "col_252")
+train_reduced <- density_lr(train_reduced, "col_258")
+train_reduced <- density_lr(train_reduced, "col_295")
+train_reduced <- density_lr(train_reduced, "col_298")
+
+
+test_reduced <- test_density_cols(test_reduced, "col_33", density_df = density_lr_est(train_reduced, "col_33"))
+test_reduced <- test_density_cols(test_reduced, "col_65", density_df = density_lr_est(train_reduced, "col_65"))
+test_reduced <- test_density_cols(test_reduced, "col_30", density_df = density_lr_est(train_reduced, "col_30"))
+test_reduced <- test_density_cols(test_reduced, "col_43", density_df = density_lr_est(train_reduced, "col_43"))
+test_reduced <- test_density_cols(test_reduced, "col_73", density_df = density_lr_est(train_reduced, "col_73"))
+test_reduced <- test_density_cols(test_reduced, "col_80", density_df = density_lr_est(train_reduced, "col_80"))
+test_reduced <- test_density_cols(test_reduced, "col_82", density_df = density_lr_est(train_reduced, "col_82"))
+test_reduced <- test_density_cols(test_reduced, "col_90", density_df = density_lr_est(train_reduced, "col_90"))
+test_reduced <- test_density_cols(test_reduced, "col_91", density_df = density_lr_est(train_reduced, "col_91"))
+test_reduced <- test_density_cols(test_reduced, "col_114", density_df = density_lr_est(train_reduced, "col_114"))
+test_reduced <- test_density_cols(test_reduced, "col_117", density_df = density_lr_est(train_reduced, "col_117"))
+test_reduced <- test_density_cols(test_reduced, "col_133", density_df = density_lr_est(train_reduced, "col_133"))
+test_reduced <- test_density_cols(test_reduced, "col_168", density_df = density_lr_est(train_reduced, "col_168"))
+test_reduced <- test_density_cols(test_reduced, "col_189", density_df = density_lr_est(train_reduced, "col_189"))
+test_reduced <- test_density_cols(test_reduced, "col_194", density_df = density_lr_est(train_reduced, "col_194"))
+test_reduced <- test_density_cols(test_reduced, "col_199", density_df = density_lr_est(train_reduced, "col_199"))
+test_reduced <- test_density_cols(test_reduced, "col_217", density_df = density_lr_est(train_reduced, "col_217"))
+test_reduced <- test_density_cols(test_reduced, "col_221", density_df = density_lr_est(train_reduced, "col_221"))
+test_reduced <- test_density_cols(test_reduced, "col_226", density_df = density_lr_est(train_reduced, "col_226"))
+test_reduced <- test_density_cols(test_reduced, "col_252", density_df = density_lr_est(train_reduced, "col_252"))
+test_reduced <- test_density_cols(test_reduced, "col_258", density_df = density_lr_est(train_reduced, "col_258"))
+test_reduced <- test_density_cols(test_reduced, "col_295", density_df = density_lr_est(train_reduced, "col_295"))
+test_reduced <- test_density_cols(test_reduced, "col_298", density_df = density_lr_est(train_reduced, "col_298"))
+
+
+
+```
+
+
+Next, Nate's normal density LR's.  
+
+```{r}
+mu_relevant_cols_c0 <- apply(X = train_c0[,relevant_cols + 3], MARGIN = 2, FUN = mean) 
+sd_relevant_cols_c0 <- apply(X = train_c0[,relevant_cols + 3], MARGIN = 2, FUN = sd) 
+
+mu_relevant_cols_c1 <- apply(X = train_c1[,relevant_cols + 3], MARGIN = 2, FUN = mean) 
+sd_relevant_cols_c1 <- apply(X = train_c1[,relevant_cols + 3], MARGIN = 2, FUN = sd) 
+
+
+nates_normal_loglr_feats2 <- function(x, mu0 = mu_relevant_cols_c0, 
+                                      mu1 = mu_relevant_cols_c1, 
+                                      sd0 = sd_relevant_cols_c0,
+                                      sd1 = sd_relevant_cols_c1,
+                                      prior_c0 = 90/250, 
+                                      prior_c1 = 160/250, 
+                                      rel_cols = relevant_cols)
+{
+  lrs <- numeric(length = length(rel_cols))
+  x <- as.numeric(x[rel_cols + 1])
+  for(i in 1:length(lrs))
+  {
+    lrs[i] <- dnorm(x = x[i] , mean = mu1[i], sd = sd0[i], log = TRUE) - 
+      dnorm(x = x[i] , mean = mu0[i], sd = sd1[i], log = TRUE) - 
+      log(prior_c1/prior_c0)
+  }
+  
+  return(lrs)
+}
+
+# temp <- nates_normal_loglr_feats2(x = train[1,-c(1,2)])
+lrs <- t(apply(X = train[,-c(1,2)], MARGIN = 1, FUN = nates_normal_loglr_feats2))
+colnames(lrs) <- paste("lr", relevant_cols, sep = "_")
+
+lrs_test <- t(apply(X = test[,-1], MARGIN = 1, FUN = nates_normal_loglr_feats2))
+colnames(lrs_test) <- paste("lr", relevant_cols, sep = "_")
+
+```
+
+Next, LASSO again with original columns, kernel densities, normal density.  
+
+```{r}
+train_features <- cbind(train_reduced, lrs)
+test_features <- cbind(test_reduced, lrs_test)
+```
+
+```{r}
+lasso_finalfeats <- cv.glmnet(x = as.matrix(train_features[,3:72]), y = train_features$col_target, family = "binomial", alpha = 1, nfolds = 10)
+s_finalfeats = lasso_finalfeats$lambda.min
+s_1se_finalfeats = lasso_finalfeats$lambda.1se
+lasso_finalfeats_coef = predict(lasso_finalfeats, s = s_finalfeats, type = "coefficients")
+lasso_finalfeats_coef
+
+final_feats <- rownames(lasso_finalfeats_coef)[as.matrix(lasso_finalfeats_coef)[,1] != 0][-1]
+
+```
+
+
+
+```{r}
+train_finalfeats <- train_features[,c(1:2, which(colnames(train_features) %in% final_feats))]
+test_finalfeats <- test_features[,c(1, which(colnames(test_features) %in% final_feats))]
+```
+
+
+
+```{r}
+lasso_preds <- predict(lasso_finalfeats, s = s_finalfeats, newx = as.matrix(test_features[,-1]), type = "response")
+test_preds <- data.frame(id = test_features$col_id, target = as.vector(lasso_preds))
+
+write_csv(test_preds, "kiegan_finalfeats_lasso_submission.csv")
+
+```
+
+
+```{r}
+
+library(randomForest)
+library(caret)
+#trControl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
+trControl <- trainControl(method = "oob")
+
+first_rf <- caret::train(form = factor(col_target)~., data = train_features[,-1], 
+                       method = "rf",
+                       trControl = trControl, 
+                       ntree = 500,
+                       classwt = c(90/250, 160/250), 
+                       tuneLength = 20)
+
+preds_train_rf <- predict(first_rf, newdata = train_features[,-c(1:2)], type = "prob")
+test_rf <- data.frame(id = train_features$col_id, target = train_features$col_target, preds = as.vector(preds_train_rf[,2]))
+test_rf %>% ggplot() + geom_density(aes(x = preds, fill = factor(target)), alpha = 0.6)
+preds_rf <- predict(first_rf, newdata = test_features[,-1], type = "prob")
+test <- data.frame(id = test$id, target = preds_rf[,2])
+test %>% ggplot() + geom_histogram(aes(x = target))
+write_csv(test, "kiegan_finalfeats_rf_sub.csv")
+```
