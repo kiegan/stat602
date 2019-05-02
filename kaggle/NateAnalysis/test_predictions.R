@@ -32,12 +32,19 @@ colnames(lrs_test) <- paste("lr", relevant_cols, sep = "_")
 
 test_f2 <- cbind(test[,-1], lrs_test)
 
-test_target_pred2 <- predict(m2, newdata = test_f2, type = "prob")
+test_target_pred2 <- predict.cv.glmnet(m2, newx = as.matrix(test_f2), type = "response", s = "lambda.min")
 
-test_sub2 <- data.frame("id" = test$id, "target" = as.numeric(test_target_pred2[,2]))
+test_sub2 <- data.frame("id" = test$id, "target" = as.numeric(test_target_pred2))
 
-write.csv(x = test_sub2, file = "kaggle/NateAnalysis/nate_sub2.csv", row.names = FALSE)
+write.csv(x = test_sub2, file = "kaggle/NateAnalysis/nate_sub2_original.csv", row.names = FALSE)
 
+
+## predictions for GLM with columns 33 and 65
+test_target_pred2_1 <- predict(object = m2.1, newdata = test_f2, type = "response")
+
+test_sub2_1 <- data.frame("id" = test$id, "target" = as.numeric(test_target_pred2_1))
+
+write.csv(x = test_sub2_1, file = "kaggle/NateAnalysis/nate_sub_glm_33_65.csv", row.names = FALSE)
 
 ## Stacked RF with LR feature only for 23 relevant columns
 lrs_test <- t(apply(X = test[,-c(1)], MARGIN = 1, FUN = nates_normal_loglr_feats2))
