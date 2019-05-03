@@ -210,13 +210,19 @@ Instead of using this single feature, however, we instead use $|I|$ individual l
 
 # Prediction Methods  
 
+With a final set of features, we can try multiple methods for final class predictions. 
 
-
-With a final set of features, we can try multiple methods for final class predictions.  
+Our currently best performing model was fit using a LASSO. Features used in the model included all of the raw columns as variables plus the log-likelihood ratio features of the variables with column indicies in $I$. The penalty parameter used was the value of $\lambda_{1se} \approx 0.103$ computed by the `cv.glmnet` function in the `glmnet` package. This model ended up only including variables $33$ and $65$ and had coefficients $\hat{\beta}_{33} \approx 0.329$ and $\hat{\beta}_{65} \approx 0.149$. The intercept was estimated to be $\hat{\beta}_0 \approx 0.638$. Interestingly, fitting a logistic regression using only variables $33$ and $65$ results in substantially worse accuracy indicating that shrinking these regression coefficients is critical. 
 
 ## Random Forest 
 
-# Conclusions  
+# Discussion
+
+One frustrating component of this competition was how little the knowledge of "optimal" features seemed to help over doing something completely naive (i.e. LASSO using raw data). The data were very likely simulated, and we attempted to take advantage of that strong suspicion by making (mostly) testable and reasonable assumptions about the class conditional distributions. Yet, at the end of the day, one of our most competitive models was essentially just a logit-linear model with two raw data variables which seemed to have different means between the classes. The theoretical justification for log-likelihood ratios being the transformation that should be linearly related to the logit posterior class probabilities seemed to be contradicted by model performance (all log-likelihood ratios were kicked out of the LASSO). With that being said, it is, of course, possible that all of the predictor variables were just generated iid $N(0,1)$, and then the data creator plugged those variables into the oracle model (which must be very similar to a simple logistic regression). In this case, the class conditional densities need not be multivariate normal. Further, the optimal features would then just simply be the untransformed predictor variables. Perhaps it was for this reason that the likelihood ratio features were all ejected from our best LASSO model. Whether or not this is true, however, the takeaway seems to be that it is easy to be fooled into making incorrect assumptions about the data generating mechanism even when those assumptions largely pass statistical scrutiny with flying colors. 
+
+With reference to the above discussion, one thing that would have been interesting would have been to try to identify the class conditional distributions if the data were simulated in the hypothesized manner. That would have potentially provided some indication of how easy it would be to get fooled into thinking that the class conditional distributions are Gaussian. 
+
+One might take issue with the fact that while most of our assumptions about class conditional distributions were tested in a reasonable way, our assumption of independence and/or zero correlation between columns was not ideal. We have discussed how the class conditional data could be multivariate normal with zero correlation, or be marginally Gaussian with strange dependencies between variables. One attempt of dealing with the latter was to take the subset of predictor columns corresponding to indicies $I$ and use more flexible methods, such as a random forest, boosted trees, single classification trees, Quinlan's C5.0.
 
 
 
