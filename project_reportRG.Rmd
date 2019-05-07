@@ -212,7 +212,7 @@ Instead of using this single feature, however, we instead use $|I|$ individual l
 
 With a final set of features, we can try multiple methods for final class predictions. 
 
-Our currently best performing model was fit using a LASSO. Features used in the model included all of the raw columns as variables plus the log-likelihood ratio features of the variables with column indicies in $I$. The penalty parameter used was the value of $\lambda_{1se} \approx 0.103$ computed by the `cv.glmnet` function in the `glmnet` package. This model ended up only including variables $33$ and $65$ and had coefficients $\hat{\beta}_{33} \approx 0.329$ and $\hat{\beta}_{65} \approx 0.149$. The intercept was estimated to be $\hat{\beta}_0 \approx 0.638$. Interestingly, fitting a logistic regression using only variables $33$ and $65$ results in substantially worse accuracy indicating that shrinking these regression coefficients is critical. 
+Our second best performing model was fit using a LASSO. Features used in the model included all of the raw columns as variables plus the log-likelihood ratio features of the variables with column indicies in $I$. The penalty parameter used was the value of $\lambda_{1se} \approx 0.103$ computed by the `cv.glmnet` function in the `glmnet` package. This model ended up only including variables $33$ and $65$ and had coefficients $\hat{\beta}_{33} \approx 0.329$ and $\hat{\beta}_{65} \approx 0.149$. The intercept was estimated to be $\hat{\beta}_0 \approx 0.638$. Interestingly, fitting a logistic regression using only variables $33$ and $65$ results in substantially worse accuracy indicating that shrinking these regression coefficients is critical. 
 
 ## Random Forest 
 
