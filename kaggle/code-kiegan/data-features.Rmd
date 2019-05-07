@@ -285,3 +285,60 @@ test <- data.frame(id = test$id, target = preds_rf[,2])
 test %>% ggplot() + geom_histogram(aes(x = target))
 write_csv(test, "kiegan_finalfeats_rf_sub.csv")
 ```
+
+
+STACKING:  
+
+The submissions we want are:
+nate_sub2_original.csv
+```{r, echo = F, warning = F, message = F}
+nate_sub2_original <- read_csv("../NateAnalysis/nate_sub2_original.csv")
+
+kiegan_finalfeats_lasso <- read_csv("kiegan_finalfeats_lasso_submission.csv")
+kernel_lrs_submission <- read_csv("kernel_lrs_submission.csv")
+
+names(nate_sub2_original) <- c("id", "target_nate2")
+names(kiegan_finalfeats_lasso) <- c("id", "target_kiegan")
+names(kernel_lrs_submission) <- c("id", "target_kernel")
+
+submission <- left_join(nate_sub2_original, kiegan_finalfeats_lasso)
+submission <- left_join(submission, kernel_lrs_submission)
+head(submission)
+
+submission <- submission %>% 
+  mutate(target = (target_nate2 + target_kiegan + target_kernel)/3) 
+head(submission)
+
+submission <- submission %>% dplyr::select(id, target)
+
+write_csv(submission, "stacking_submission_1.csv")
+```
+
+```{r}
+nate_sub2_original <- read_csv("../NateAnalysis/nate_sub2_original.csv")
+
+kiegan_finalfeats_lasso <- read_csv("kiegan_finalfeats_lasso_submission.csv")
+kernel_lrs_submission <- read_csv("kernel_lrs_submission.csv")
+lasso_nate_lr_sub <- read_csv("lasso_nate_lr_submission_2.csv")
+lasso_sub <- read_csv("lasso_submission.csv")
+
+names(nate_sub2_original) <- c("id", "target_nate2")
+names(kiegan_finalfeats_lasso) <- c("id", "target_kiegan")
+names(kernel_lrs_submission) <- c("id", "target_kernel")
+names(lasso_nate_lr_sub) <- c("id", "target_lasso")
+names(lasso_sub) <- c("id", "target_lasso1")
+
+submission <- left_join(nate_sub2_original, kiegan_finalfeats_lasso)
+submission <- left_join(submission, kernel_lrs_submission)
+submission <- left_join(submission, lasso_nate_lr_sub)
+submission <- left_join(submission, lasso_sub)
+head(submission)
+submission <- submission %>% 
+  mutate(target = (target_nate2 + target_kiegan + target_kernel + target_lasso + target_lasso1)/5) 
+
+submission <- submission %>% dplyr::select(id, target)
+write_csv(submission, "stacking_submission_3.csv")
+```
+
+
+
