@@ -92,14 +92,23 @@ summary_hist
 - t-tests of differences in column means between classes
     - columns 33 and 65 have p-values that survive Bonferroni correction
     
-## Feature Creation
+## Feature Engineering
 - Only consider functions of variables retained by a LASSO on raw data
 - univariate Gaussian log-LRs
 
 ## Model Fitting
-- LASSO with all raw features + Gaussian log-LRs ($\lambda_{1se})
+- LASSO with all raw features + Gaussian log-LRs ($\lambda_{1se}$)
     - keeps only the raw column 33 and 65
     - Final AUROC: 
     
 ## Failed Ideas
-- FAILURE
+- Fitting flexible predictors on all raw data (or raw data + engineered features)
+    - Fitting flexible predictors on small sets of engineered features worked better, but not competitive
+
+## Takeaways
+- Assumptions are important, but CV is king
+- Food for thought: 
+    - With LASSO, performance doesn't seem to suffer when adding more predictors. With more "flexible" predictors,  this is not the case even though we still use CV to choose penalty parameters. Why?
+    
+## If we had more time...
+- Test several hypothetical generative data models for compatibility with training data

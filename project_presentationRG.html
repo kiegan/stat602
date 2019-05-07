@@ -50,8 +50,8 @@ Nate Garton
 </ul></li>
 </ul>
 </div>
-<div id="feature-creation" class="slide section level2">
-<h2>Feature Creation</h2>
+<div id="feature-engineering" class="slide section level2">
+<h2>Feature Engineering</h2>
 <ul>
 <li>Only consider functions of variables retained by a LASSO on raw data</li>
 <li>univariate Gaussian log-LRs</li>
@@ -60,7 +60,7 @@ Nate Garton
 <div id="model-fitting" class="slide section level2">
 <h2>Model Fitting</h2>
 <ul>
-<li>LASSO with all raw features + Gaussian log-LRs ($_{1se})
+<li>LASSO with all raw features + Gaussian log-LRs (<span class="math inline">\(\lambda_{1se}\)</span>)
 <ul>
 <li>keeps only the raw column 33 and 65</li>
 <li>Final AUROC:</li>
@@ -70,7 +70,26 @@ Nate Garton
 <div id="failed-ideas" class="slide section level2">
 <h2>Failed Ideas</h2>
 <ul>
-<li>FAILURE</li>
+<li>Fitting flexible predictors on all raw data (or raw data + engineered features)
+<ul>
+<li>Fitting flexible predictors on small sets of engineered features worked better, but not competitive</li>
+</ul></li>
+</ul>
+</div>
+<div id="takeaways" class="slide section level2">
+<h2>Takeaways</h2>
+<ul>
+<li>Assumptions are important, but CV is king</li>
+<li>Food for thought:
+<ul>
+<li>With LASSO, performance doesn’t seem to suffer when adding more predictors. With more “flexible” predictors, this is not the case even though we still use CV to choose penalty parameters. Why?</li>
+</ul></li>
+</ul>
+</div>
+<div id="if-we-had-more-time" class="slide section level2">
+<h2>If we had more time…</h2>
+<ul>
+<li>Test several hypothetical generative data models for compatibility with training data</li>
 </ul>
 </div>
 
