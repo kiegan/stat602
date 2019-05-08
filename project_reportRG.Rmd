@@ -1,7 +1,7 @@
 ---
 title: "Stat 602 Project Report"
 author: "Kiegan Rice and Nate Garton"
-date: "Due Friday, May 10, 2019"
+date: "Due May 10, 2019"
 output: 
   pdf_document: 
     fig_caption: yes
@@ -182,15 +182,16 @@ for(i in 1:ncol(train[,-c(1,2)]))
 
 Creative feature engineering proved particularly difficult for this problem, especially due to the murky nature of the data. While data were pristine in the sense of completeness, the lack of contextual information about predictors makes context-based feature engineering impossible. With that being said, our exploratory data analysis suggests that the class conditional distributions can be modeled well under strong assumptions. In the absence of abundant data, it is critical to take advantage of reasonable assumptions. The large number of predictors also poses the challenge of weeding out noise without removing useful information; dimension reduction plays the first big role in constructing a good set of features.  
 
-We have already discussed how two predictor variables appear to be statistically significantly different across classes. However, we would rather do variable selection by optimizing for the criteria upon which we will be judged (AUROC) than using t-test p-values as the selection criteria. Therefore, rather than exclusively using the two variables that have the smallest p-values in our models, we opt for a more traditional type of machine learning variable selection technique. LASSO is a natural choice for dimension reduction here, as it will shrink many predictor parameter estimates to zero in favor of those that more adequately describe the response variable. A logistic regression LASSO model using all 300 predictors was fit using the `glmnet` package, in particular, the `cv.glmnet` function with $\alpha = 1$. Columns with non-zero parameter values in the $\lambda_{1se}$ model were kept for future \nate{the best predictions that we have now come from a LASSO using all of the variables + the LR features, but only column 33 and 65 retained (no LR features) by the lambda.1se model (which is the one used)} \textcolor{red}{modeling} and feature engineering, while the others were removed from consideration. 
+We have already discussed how two predictor variables appear to be statistically significantly different across classes. However, we would rather do variable selection by optimizing for the criteria upon which we will be judged (AUROC) than using t-test p-values as the selection criteria. Therefore, rather than exclusively using the two variables that have the smallest p-values in our models, we opt for a more traditional type of machine learning variable selection technique. LASSO is a natural choice for dimension reduction here, as it will shrink many predictor parameter estimates to zero in favor of those that more adequately describe the response variable. A logistic regression LASSO model using all 300 predictors was fit using the `glmnet` package, in particular, the `cv.glmnet` function with $\alpha = 1$. Columns with non-zero parameter values in the $\lambda_{1se}$ model were kept for future \nate{the best predictions that we have now come from a LASSO using all of the variables + the LR features, but only column 33 and 65 retained (no LR features) by the lambda.1se model (which is the one used)} \textcolor{red}{modeling} \kiegan{since we haven't introduced LRs yet, this is something we can talk about later in the feature engineering, like as a summarizing sentence of what remains after additional feature engineering and another LASSO.} and feature engineering, while the others were removed from consideration. 
 
 Recall that we have argued that it is tentatively reasonable to assume that, conditional on the class, the predictor variable distributions are independent normal random variables with standard deviation 1. In this case, we should not need to worry about interactions between variables being important for classification, while differences in column distributions corresponding to mean shifts should be identified by the LASSO. 
 
 ## Likelihood Ratios as Features  
 
-Our team considered two different approaches to using likelihood ratios as features: a kernel density estimate approach, and an assumed normal distribution approach.  
+Our team considered two different approaches to using likelihood ratios as features: an assumed normal distribution approach, and a kernel density estimate approach.  
 
-\kiegan{I thought it would be good to have me first describe the kernel density approach, and then you describe the assumed normal distribution approach, and maybe do some plots comparing our two sets of estimated densities. If I can find it in your code, I can just come up with these plots.}
+\kiegan{I thought it would be good to have me first describe the kernel density approach, and then you describe the assumed normal distribution approach, and maybe do some plots comparing our two sets of estimated densities. If I can find it in your code, I can just come up with these plots.}  
+
 
 ### Gaussian Likelihood Ratios
 
@@ -204,9 +205,23 @@ where $\pi_0$ and $\pi_1$ are the overall class probabilities for class $0$ and 
 
 Instead of using this single feature, however, we instead use $|I|$ individual log-likelihood ratios as features. If we use a logistic regression model, we see that using $|I|$ individual log-likelihood ratios as features reduces to the single feature case when all of the regression coefficients are the same. Thus, we allow for slightly more flexible models by using univariate likelihood ratios, but any model class using univariate likelihood ratios contains the single feature model as a submodel.
 
+### Kernel Density Likelihood Ratios  
+
+The kernel density approach, used as an alternative to Gaussian log-likelihood ratios, was calculated in a similar manner in the sense that a separate univariate likelihood ratio was calculated for each column which remained in the initial LASSO which was used for dimension reduction. The main difference was that kernel density estimates, using the `density` function in `R` were used to estimate the density for each class rather than an assumed Gaussian density. While tests for normality bolstered support for assuming Gaussian distributions, the nature of the competition also led us to consider a data-based density estimate as an alternative.  
+
+However, this also creates the possibility of overfitting the likelihood ratio estimates to the small sample size given in the training data. In fact, correlations between Gaussian log-likelihood ratios and kernel density log-likelihood ratios were relatively low; the two methods produced rather different likelihood ratio estimates. This is most likely due to the kernel density estimates being too sensitive to small "bumps" in the class-conditional densities, whereas the Gaussian log-likelihood ratios were more robust to noise present in the features.  
+
+When kernel density log-likelihood ratios were used as the set of LR features instead of Gaussian log-likelihood ratio estimates, predictions submitted to the Kaggle public leaderboard were lower; these data-based density metrics are prone to the overfitting we are hoping to avoid.  
+
+
 ## Clustering  
 
-\kiegan{I will talk about clustering here.}  
+The nature of the data as seemingly independent random normal variables with means around 0 and standard deviations around 1 led us to also consider an unsupervised clustering approach on the likelihood ratio features to infer whether there were any discernable patterns within the data. Model-based clustering was performed on columns '33', '65', and the set of Gaussian log-likelihood ratios, removing the response from consideration. While some clusters appeared to identify patterns present in the data, when clusters were compared to the response classes, there were no clusters which were more highly associated with one class than the other. This lack of association led us to remove any clustering categorizations from consideration as a feature in our dataset.  
+
+
+## Conclusions of Feature Engineering  
+
+
 
 
 # Prediction Methods  
