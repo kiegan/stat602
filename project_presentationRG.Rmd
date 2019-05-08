@@ -3,8 +3,9 @@ title: "602 Final Project Presentation"
 author: "Nate Garton"
 date: "May 7, 2019"
 output:
-  slidy_presentation: default
+  ioslides_presentation: default
   beamer_presentation: default
+  slidy_presentation: default
 ---
 
 \newcommand{\nate}[1]{{\color{olive}{#1}}}
@@ -99,7 +100,7 @@ summary_hist
 ## Model Fitting
 - LASSO with all raw features + Gaussian log-LRs ($\lambda_{1se}$)
     - keeps only the raw column 33 and 65
-    - Final AUROC: 
+    - Final AUROC: 0.833 ($\downarrow$ 0.015)
     
 ## Failed Ideas
 - Fitting flexible predictors on all raw data (or raw data + engineered features)
