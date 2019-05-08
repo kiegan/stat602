@@ -1,11 +1,15 @@
 ---
 title: "602 Final Project Presentation"
-author: "Nate Garton"
-date: "May 7, 2019"
+author: "Nate Garton and Kiegan Rice"
+date: "May 9, 2019"
+ratio: 16x10
 output:
-  ioslides_presentation: default
-  beamer_presentation: default
-  slidy_presentation: default
+  rmdshower::shower_presentation:
+    self_contained: false
+    katex: true
+    theme: material
+    fig_caption: TRUE
+    highlight: NULL 
 ---
 
 \newcommand{\nate}[1]{{\color{olive}{#1}}}
@@ -81,6 +85,25 @@ summary_hist <- ggplot(data = summary_df_long) +
 summary_hist
 ```
 
+## EDA: Class Conditional Densities  
+
+```{r, echo = F, warning = F, message = F, fig.height = 5, fig.width =9}
+
+plot_cols <- c(15, 84, 128, 260, 33, 65, 117, 217)
+# no sep: 260, 128, 15, 84
+# sep: 33, 65, 91, 117, 217
+train %>% 
+  gather(plot_cols+3, key = "col_num", value = "value") %>%
+  mutate(col_num = factor(col_num, levels = c("15", "84", "128", "260", "33", "65", "117", "217"))) %>%
+  ggplot() + geom_density(aes(x = value, fill = factor(target)), alpha = 0.6) + 
+  facet_wrap(~col_num, nrow = 2) + 
+  theme_bw() + 
+  scale_fill_discrete(name = "Response Class") + 
+  labs(x = "Value", y = "Density")
+  
+```
+
+
 ## EDA: Class Conditional Densities
 - Shapiro-Wilk tests for normality for each column conditional on class
 - KS tests that p-values from SW test are $U(0,1)$
@@ -91,11 +114,15 @@ summary_hist
     - p-value for class 0: $0.113$
     - p-value for class 1: $0.905$
 - t-tests of differences in column means between classes
-    - columns 33 and 65 have p-values that survive Bonferroni correction
+    - columns 33 and 65 have p-values that survive Bonferroni correction  
+
     
 ## Feature Engineering
-- Only consider functions of variables retained by a LASSO on raw data
-- univariate Gaussian log-LRs
+- Only consider functions of variables retained by a LASSO on raw data  
+- multivariate Gaussian LR  
+- univariate Gaussian log-LRs  
+- univariate kernel density log-LRs  
+- model-based clustering, removing response  
 
 ## Model Fitting
 - LASSO with all raw features + Gaussian log-LRs ($\lambda_{1se}$)
@@ -112,4 +139,6 @@ summary_hist
     - With LASSO, performance doesn't seem to suffer when adding more predictors. With more "flexible" predictors,  this is not the case even though we still use CV to choose penalty parameters. Why?
     
 ## If we had more time...
-- Test several hypothetical generative data models for compatibility with training data
+- Test several hypothetical generative data models for compatibility with training data  
+- Bayes  
+- Testing additional classification methods  

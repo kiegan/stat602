@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>602 Final Project Presentation</title>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="project_presentationRG_files/shower-material/package/styles/screen-4x3.css">
+  <link rel="stylesheet" href="project_presentationRG_files/rmdshower/style-common.css">
+  <link rel="stylesheet" href="project_presentationRG_files/rmdshower/style-material.css">
+  <link rel="stylesheet" href="project_presentationRG_files/shower-material/style-override.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"></script>
+  <script src="project_presentationRG_files/rmdshower/auto-render.min.js" type="text/javascript"></script>
+  
+  
+  
+  
+  
+</head>
+
+<body class="shower list">
+
+  <header class="caption">
+    <h1>602 Final Project Presentation</h1>
+    <p>Nate Garton and Kiegan Rice</p>
+  </header>
+
+  
+  
+<section id="background" class="slide level2">
+<h2>Background</h2>
+<ul>
+<li>Some background</li>
+</ul>
+</section>
+<section id="eda" class="slide level2">
+<h2>EDA</h2>
+<p><img src="project_presentationRG_files/figure-revealjs/unnamed-chunk-1-1.png" /><!-- --></p>
+</section>
+<section id="eda-class-conditional-densities" class="slide level2">
+<h2>EDA: Class Conditional Densities</h2>
+<p><img src="project_presentationRG_files/figure-revealjs/unnamed-chunk-2-1.png" /><!-- --></p>
+</section>
+<section id="eda-class-conditional-densities-1" class="slide level2">
+<h2>EDA: Class Conditional Densities</h2>
+<ul>
+<li>Shapiro-Wilk tests for normality for each column conditional on class</li>
+<li>KS tests that p-values from SW test are <span class="math inline">\(U(0,1)\)</span>
+<ul>
+<li>p-value for class 0: <span class="math inline">\(0.904\)</span></li>
+<li>p-value for class 1: <span class="math inline">\(0.997\)</span></li>
+</ul></li>
+<li>Fisher transformation on class conditional column correlations</li>
+<li>KS tests that p-values from Z-tests are <span class="math inline">\(U(0,1)\)</span>
+<ul>
+<li>p-value for class 0: <span class="math inline">\(0.113\)</span></li>
+<li>p-value for class 1: <span class="math inline">\(0.905\)</span></li>
+</ul></li>
+<li>t-tests of differences in column means between classes
+<ul>
+<li>columns 33 and 65 have p-values that survive Bonferroni correction</li>
+</ul></li>
+</ul>
+</section>
+<section id="feature-engineering" class="slide level2">
+<h2>Feature Engineering</h2>
+<ul>
+<li>Only consider functions of variables retained by a LASSO on raw data</li>
+<li>univariate Gaussian log-LRs</li>
+</ul>
+</section>
+<section id="model-fitting" class="slide level2">
+<h2>Model Fitting</h2>
+<ul>
+<li>LASSO with all raw features + Gaussian log-LRs (<span class="math inline">\(\lambda_{1se}\)</span>)
+<ul>
+<li>keeps only the raw column 33 and 65</li>
+<li>Final AUROC: 0.833 (<span class="math inline">\(\downarrow\)</span> 0.015)</li>
+</ul></li>
+</ul>
+</section>
+<section id="failed-ideas" class="slide level2">
+<h2>Failed Ideas</h2>
+<ul>
+<li>Fitting flexible predictors on all raw data (or raw data + engineered features)
+<ul>
+<li>Fitting flexible predictors on small sets of engineered features worked better, but not competitive</li>
+</ul></li>
+</ul>
+</section>
+<section id="takeaways" class="slide level2">
+<h2>Takeaways</h2>
+<ul>
+<li>Assumptions are important, but CV is king</li>
+<li>Food for thought:
+<ul>
+<li>With LASSO, performance doesn’t seem to suffer when adding more predictors. With more “flexible” predictors, this is not the case even though we still use CV to choose penalty parameters. Why?</li>
+</ul></li>
+</ul>
+</section>
+<section id="if-we-had-more-time" class="slide level2">
+<h2>If we had more time…</h2>
+<ul>
+<li>Test several hypothetical generative data models for compatibility with training data<br />
+</li>
+<li>Bayes<br />
+</li>
+<li>Testing additional classification methods</li>
+</ul>
+</section>
+
+  <!--
+  To hide progress bar from entire presentation
+  just remove “progress” element.
+  -->
+  <!-- <div class="progress"></div> -->
+  <script src="project_presentationRG_files/rmdshower/node_modules/shower/node_modules/shower-core/shower.min.js"></script>
+  <!-- Copyright © 2015 Yours Truly, Famous Inc. -->
+  <!-- Photos by John Carey, fiftyfootshadows.net -->
+
+    <script>renderMathInElement(document.body);</script>
+  
+  
+</body>
+</html>
