@@ -1,18 +1,28 @@
 ---
-title: "Stat 602 Project Report"
+title: "Stat 602 Project Report:"
+subtitle: "Kaggle's 'Don't Overfit! II'"
 author: "Kiegan Rice and Nate Garton"
 date: "Due May 10, 2019"
 output: 
   pdf_document: 
     fig_caption: yes
+    number_sections: yes
 header-includes: \usepackage{float, mathtools, accents, xcolor}
   \usepackage{setspace}
-  \linespread{1.25} 
+  \linespread{1.3} 
 ---
 
 \newcommand{\nate}[1]{{\color{olive}{#1}}}
 \newcommand{\kiegan}[1]{{\color{teal}{#1}}}
 \newcommand{\dbtilde}[1]{\accentset{\approx}{#1}}
+
+\vspace{5cm}
+\centering
+
+\raggedright
+\newpage
+
+
 
 ```{r global_options, echo = F, include = FALSE}
 knitr::opts_chunk$set(fig.pos = 'H')
@@ -182,15 +192,13 @@ for(i in 1:ncol(train[,-c(1,2)]))
 
 Creative feature engineering proved particularly difficult for this problem, especially due to the murky nature of the data. While data were pristine in the sense of completeness, the lack of contextual information about predictors makes context-based feature engineering impossible. With that being said, our exploratory data analysis suggests that the class conditional distributions can be modeled well under strong assumptions. In the absence of abundant data, it is critical to take advantage of reasonable assumptions. The large number of predictors also poses the challenge of weeding out noise without removing useful information; dimension reduction plays the first big role in constructing a good set of features.  
 
-We have already discussed how two predictor variables appear to be statistically significantly different across classes. However, we would rather do variable selection by optimizing for the criteria upon which we will be judged (AUROC) than using t-test p-values as the selection criteria. Therefore, rather than exclusively using the two variables that have the smallest p-values in our models, we opt for a more traditional type of machine learning variable selection technique. LASSO is a natural choice for dimension reduction here, as it will shrink many predictor parameter estimates to zero in favor of those that more adequately describe the response variable. A logistic regression LASSO model using all 300 predictors was fit using the `glmnet` package, in particular, the `cv.glmnet` function with $\alpha = 1$. Columns with non-zero parameter values in the $\lambda_{1se}$ model were kept for future \nate{the best predictions that we have now come from a LASSO using all of the variables + the LR features, but only column 33 and 65 retained (no LR features) by the lambda.1se model (which is the one used)} \textcolor{red}{modeling} \kiegan{since we haven't introduced LRs yet, this is something we can talk about later in the feature engineering, like as a summarizing sentence of what remains after additional feature engineering and another LASSO.} and feature engineering, while the others were removed from consideration. 
+We have already discussed how two predictor variables appear to be statistically significantly different across classes. However, we would rather do variable selection by optimizing for the criteria upon which we will be judged (AUROC) than using t-test p-values as the selection criteria. Therefore, rather than exclusively using the two variables that have the smallest p-values in our models, we opt for a more traditional type of machine learning variable selection technique. LASSO is a natural choice for dimension reduction here, as it will shrink many predictor parameter estimates to zero in favor of those that more adequately describe the response variable. A logistic regression LASSO model using all 300 predictors was fit using the `glmnet` package, in particular, the `cv.glmnet` function with $\alpha = 1$. Columns with non-zero parameter values in the $\lambda_{1se}$ model were kept for future feature engineering, while the others were removed from consideration. 
 
 Recall that we have argued that it is tentatively reasonable to assume that, conditional on the class, the predictor variable distributions are independent normal random variables with standard deviation 1. In this case, we should not need to worry about interactions between variables being important for classification, while differences in column distributions corresponding to mean shifts should be identified by the LASSO. 
 
 ## Likelihood Ratios as Features  
 
 Our team considered two different approaches to using likelihood ratios as features: an assumed normal distribution approach, and a kernel density estimate approach.  
-
-\kiegan{I thought it would be good to have me first describe the kernel density approach, and then you describe the assumed normal distribution approach, and maybe do some plots comparing our two sets of estimated densities. If I can find it in your code, I can just come up with these plots.}  
 
 
 ### Gaussian Likelihood Ratios
@@ -207,43 +215,58 @@ Instead of using this single feature, however, we instead use $|I|$ individual l
 
 ### Kernel Density Likelihood Ratios  
 
-The kernel density approach, used as an alternative to Gaussian log-likelihood ratios, was calculated in a similar manner in the sense that a separate univariate likelihood ratio was calculated for each column which remained in the initial LASSO which was used for dimension reduction. The main difference was that kernel density estimates, using the `density` function in `R` were used to estimate the density for each class rather than an assumed Gaussian density. While tests for normality bolstered support for assuming Gaussian distributions, the nature of the competition also led us to consider a data-based density estimate as an alternative.  
+The kernel density approach, used as an alternative to Gaussian log-likelihood ratios, was calculated in the same manner as the Gaussian log-likelihood ratios, with the exception of how the density estimates were calculated conditional on each class. Kernel density estimates, using the `density` function in `R` were used to estimate the density for each class rather than an assumed Gaussian density with an estimated mean. While tests for normality bolstered support for assuming Gaussian distributions, the nature of the competition also led us to consider a data-based density estimate as an alternative.  
 
-However, this also creates the possibility of overfitting the likelihood ratio estimates to the small sample size given in the training data. In fact, correlations between Gaussian log-likelihood ratios and kernel density log-likelihood ratios were relatively low; the two methods produced rather different likelihood ratio estimates. This is most likely due to the kernel density estimates being too sensitive to small "bumps" in the class-conditional densities, whereas the Gaussian log-likelihood ratios were more robust to noise present in the features.  
+However, this also creates the possibility of overfitting the likelihood ratio estimates to the small sample size given in the training data. In fact, correlations between Gaussian log-likelihood ratios and kernel density log-likelihood ratios were relatively low; the two methods produced rather different likelihood ratio estimates. This is most likely due to the kernel density estimates being too sensitive to small "bumps" in the class-conditional densities (see again \autoref{cc-densities}), whereas the Gaussian log-likelihood ratios were more robust to noise present in the features.  
 
 When kernel density log-likelihood ratios were used as the set of LR features instead of Gaussian log-likelihood ratio estimates, predictions submitted to the Kaggle public leaderboard were lower; these data-based density metrics are prone to the overfitting we are hoping to avoid.  
 
 
-## Clustering  
-
-The nature of the data as seemingly independent random normal variables with means around 0 and standard deviations around 1 led us to also consider an unsupervised clustering approach on the likelihood ratio features to infer whether there were any discernable patterns within the data. Model-based clustering was performed on columns '33', '65', and the set of Gaussian log-likelihood ratios, removing the response from consideration. While some clusters appeared to identify patterns present in the data, when clusters were compared to the response classes, there were no clusters which were more highly associated with one class than the other. This lack of association led us to remove any clustering categorizations from consideration as a feature in our dataset.  
-
-
 ## Conclusions of Feature Engineering  
 
-
+Feature engineering concluded with the following features remaining: 
+\begin{itemize}
+\item Column '33' - raw data
+\item Column '65' - raw data
+\item Gaussian log-likelihood ratios for column indices in $I$.    
+\end{itemize}
 
 
 # Prediction Methods  
 
 With a final set of features, we can try multiple methods for final class predictions. 
 
+## LASSO  
+
 Our second best performing model was fit using a LASSO. Features used in the model included all of the raw columns as variables plus the log-likelihood ratio features of the variables with column indicies in $I$. The penalty parameter used was the value of $\lambda_{1se} \approx 0.103$ computed by the `cv.glmnet` function in the `glmnet` package. This model ended up only including variables $33$ and $65$ and had coefficients $\hat{\beta}_{33} \approx 0.329$ and $\hat{\beta}_{65} \approx 0.149$. The intercept was estimated to be $\hat{\beta}_0 \approx 0.638$. Interestingly, fitting a logistic regression using only variables $33$ and $65$ results in substantially worse accuracy indicating that shrinking these regression coefficients is critical. 
 
 ## Random Forest 
 
-\kiegan{I will talk about random forest predictions here.}  
+We also tried several implementations of random forest. Random forest, using the `randomForest` package in concert with the `caret` package, performed poorly with default parameter values. However, random forest predictions improved to an AUROC of 0.780 on the public leaderboard and 0.773 on the private leaderboard when fit using out-of-bag error and assigning prior class weights. This is a far cry from our best AUROC score of 0.833 mentioned in the LASSO section; however, it shows significant improvement over the random forest scores using default methods, which often scored in the $(0.40,0.50)$ range. We saw these low scores firsthand through our own submissions as well as discussions on the Kaggle competition page. However, it does demonstrate that random forest requires careful parameter training and specification but can do well if fit carefully.  
+
+## Combining Predictors  
+
+Our second high-scoring submission, aside from the LASSO discussed above, was a combination of previously submitted predictors from a variety of methods. A set of predictions from the LASSO model using Gaussian log-likelihood ratios, a set of predictions from a random forest fit with OOB error, and finally, a set of predictions from the LASSO model fit using kernel density log-likelihood ratios, were combined by averaging the predicted values. Since our best performing model prior to combining predictors was the LASSO with Gaussian log-likelihood ratios, we chose to combine that along with predictions from a kernel density log-likelihood to investigate whether striking a balance between the more robust Gaussian LRs and the more flexible kernel LRs would provide better results. In addition, predictions from the random forest using Gaussian LRs mixed in a differing prediction method. Each set of predictions used had correlations with each other that were at or below .85. This combined set of predictors resulted in the highest AUROC score on the public leaderboard, of 0.848, but tied with the best LASSO predictions on the private leaderboard, with a score of 0.833.  
+
+This method was chosen for combining predictions, rather than a true "ensemble" model, due to the fact that we had multiple different sets of features that generated some of our best sets of predictors. We felt this might be a good way to strike the balance between flexible and robust predictors.  
+
 
 # Discussion
 
-Our two final solutions both scored $0.833$, which was $0.015$ lower than our score on the public data set. We also dropped 147 places. Interestingly, not many teams changed more than $O(10)$ places, and the top scoring solution on the public data was also the top scoring solution on the private data. As we have discussed in class, it's possible that the winner simply correctly guessed a model that was close to the model that generated the data. This would make sense as the winner had around 350 submissions. However, the winning accuracy dropped something around $0.044$, which was almost a three-fold drop in accuracy over our solutions. In fact, it seems like several of the highest scoring models suffered larger performance drops than some of the lower scoring teams. 
+Our two final solutions both scored $0.833$, which was $0.015$ lower than our score on the public data set. We also dropped 147 places. Interestingly, not many teams changed more than $O(10)$ places, and the top scoring solution on the public data was also the top scoring solution on the private data. As we have discussed in class, it's possible that the winner simply correctly guessed a model that was close to the model that generated the data. This would make sense as the winner had around 350 submissions. However, the winning accuracy dropped something around $0.044$, which was almost a three-fold drop in accuracy over our solutions. In fact, it seems like several of the highest scoring models suffered larger performance drops than some of the lower scoring teams.  
+
+It is interesting to note that our combined predictions did not score any higher on the private leaderboard than our best single set of predictions. However, since this method was not true "stacking" or "ensembling", but rather prediction averaging, it is not surprising that the model did not increase our ability to separate data into two classes. In this particular competition, it was very difficult to stick to a traditional statistical learning paradigm of first engineering one set of features, then using a wide variety of prediction methods. While this would have been ideal, the ambiguity and apparent randomness of the data led to more of a "feedback loop" between feature engineering and prediction methods than initially anticipated. In some ways, submitted predictions were needed to determine whether features were capturing any signal in the data. This is particularly true due to the small sample size of the training data.  
 
 One frustrating component of this competition was how little the knowledge of "optimal" features seemed to help over doing something completely naive (i.e. LASSO using raw data). The data were very likely simulated, and we attempted to take advantage of that strong suspicion by making (mostly) testable and reasonable assumptions about the class conditional distributions. Yet, at the end of the day, one of our most competitive models was essentially just a logit-linear model with two raw data variables which seemed to have different means between the classes. The theoretical justification for log-likelihood ratios being the transformation that should be linearly related to the logit posterior class probabilities seemed to be contradicted by model performance (all log-likelihood ratios were kicked out of the LASSO). With that being said, it is, of course, possible that all of the predictor variables were just generated iid $N(0,1)$, and then the data creator plugged those variables into the oracle model (which must be very similar to a simple logistic regression). In this case, the class conditional densities need not be multivariate normal. Further, the optimal features would then just simply be the untransformed predictor variables. Perhaps it was for this reason that the likelihood ratio features were all ejected from our best LASSO model. Whether or not this is true, however, the takeaway seems to be that it is easy to be fooled into making incorrect assumptions about the data generating mechanism even when those assumptions largely pass statistical scrutiny with flying colors. 
 
 With reference to the above discussion, one thing that would have been interesting would have been to try to identify the class conditional distributions if the data were simulated in the hypothesized manner. That would have potentially provided some indication of how easy it would be to get fooled into thinking that the class conditional distributions are Gaussian. 
 
-One might take issue with the fact that while most of our assumptions about class conditional distributions were tested in a reasonable way, our assumption of independence and/or zero correlation between columns was not ideal. We have discussed how the class conditional data could be multivariate normal with zero correlation, or be marginally Gaussian with strange dependencies between variables. One attempt of dealing with the latter was to take the subset of predictor columns corresponding to indicies $I$ and use more flexible methods, such as a random forest, boosted trees, single classification trees, Quinlan's C5.0. The idea here was that more flexible predictors might be able to account for interactions or dependence between the whatever variables that, by themselves, seemed to be important. The performance of these methods never matched that of our best performing model, but using these methods/algorithms on the subset of the data worked better than using the methods on the entire data set. 
+One might take issue with the fact that while most of our assumptions about class conditional distributions were tested in a reasonable way, our assumption of independence and/or zero correlation between columns was not ideal. We have discussed how the class conditional data could be multivariate normal with zero correlation, or be marginally Gaussian with strange dependencies between variables. One attempt of dealing with the latter was to take the subset of predictor columns corresponding to indices $I$ and use more flexible methods, such as a random forest, boosted trees, single classification trees, Quinlan's C5.0. The idea here was that more flexible predictors might be able to account for interactions or dependence between the whatever variables that, by themselves, seemed to be important. The performance of these methods never matched that of our best performing model, but using these methods/algorithms on the subset of the data worked better than using the methods on the entire data set.  
 
 
+At the end of the day, this competition was an interesting learning experience for our team and gave us practice with investigating data with no added context. It forced us to think about the mathematical concepts behind the prediction methods more than a traditional contest may have. Since we were essentially flying blind on context information, carefully navigating which assumptions we can and should make was a good exercise. 
 
 
+# Appendices
+
+See attached.  
