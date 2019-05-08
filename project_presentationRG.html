@@ -6,12 +6,12 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="project_presentationRG_files/shower-material/package/styles/screen-4x3.css">
-  <link rel="stylesheet" href="project_presentationRG_files\rmdshower/style-common.css">
-  <link rel="stylesheet" href="project_presentationRG_files\rmdshower/style-material.css">
+  <link rel="stylesheet" href="project_presentationRG_files/rmdshower/style-common.css">
+  <link rel="stylesheet" href="project_presentationRG_files/rmdshower/style-material.css">
   <link rel="stylesheet" href="project_presentationRG_files/shower-material/style-override.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"></script>
-  <script src="project_presentationRG_files\rmdshower/auto-render.min.js" type="text/javascript"></script>
+  <script src="project_presentationRG_files/rmdshower/auto-render.min.js" type="text/javascript"></script>
   
   
   
@@ -28,10 +28,29 @@
 
   
   
+<section id="stat-602-final-project-dont-overfit-ii" class="slide level2">
+<h2>Stat 602 Final Project: </br> Don’t Overfit! II</h2>
+<p class="black">
+Nate Garton and Kiegan Rice
+</p>
+<p><img src = "xkcd_overfit.png" width="700px" height="400px"/></p>
+</section>
 <section id="background" class="slide level2">
 <h2>Background</h2>
 <ul>
-<li>Some background</li>
+<li>Kaggle’s “Don’t Overfit! II” competition</li>
+<li>250 cases in training / 19,750 in testing
+<ul>
+<li>1,975 (10%) testing cases used for public leaderboard</li>
+</ul></li>
+<li>AUROC used for scoring<br />
+</li>
+<li>300 feature columns
+<ul>
+<li>no column names<br />
+</li>
+</ul></li>
+<li>Response: 0-1 Classification</li>
 </ul>
 </section>
 <section id="eda" class="slide level2">
@@ -68,22 +87,31 @@
 <ul>
 <li>Only consider functions of variables retained by a LASSO on raw data<br />
 </li>
-<li>multivariate Gaussian LR<br />
-</li>
 <li>univariate Gaussian log-LRs<br />
 </li>
-<li>univariate kernel density log-LRs<br />
-</li>
-<li>model-based clustering, removing response</li>
+<li>univariate kernel density log-LRs</li>
 </ul>
 </section>
 <section id="model-fitting" class="slide level2">
 <h2>Model Fitting</h2>
 <ul>
+<li>Random forest with all raw features + Gaussian log-LRs
+<ul>
+<li>using OOB error for training</li>
+<li>Final AUROC: 0.773 (<span class="math inline">\(\downarrow\)</span> 0.007)</li>
+</ul></li>
 <li>LASSO with all raw features + Gaussian log-LRs (<span class="math inline">\(\lambda_{1se}\)</span>)
 <ul>
 <li>keeps only the raw column 33 and 65</li>
-<li>Final AUROC: 0.833 (<span class="math inline">\(\downarrow\)</span> 0.015)</li>
+<li>Final AUROC: 0.833 (<span class="math inline">\(\downarrow\)</span> 0.015)<br />
+</li>
+</ul></li>
+<li>Combined predictions for a few models
+<ul>
+<li>Averaged testing set predictions on two LASSO models and a random forest<br />
+</li>
+<li>(Barely) better public AUROC initially</li>
+<li>Final AUROC: 0.833 (<span class="math inline">\(\downarrow\)</span> 0.016)</li>
 </ul></li>
 </ul>
 </section>
@@ -92,18 +120,34 @@
 <ul>
 <li>Fitting flexible predictors on all raw data (or raw data + engineered features)
 <ul>
-<li>Fitting flexible predictors on small sets of engineered features worked better, but not competitive</li>
+<li>Fitting flexible predictors on small sets of engineered features worked better, but not competitive<br />
+</li>
+</ul></li>
+<li>Unsupervised clustering to hunt for signal, relationships between variables
+<ul>
+<li>Model-based clustering using <code>Mclust</code> package<br />
+</li>
+<li>Resulting clusters essentially random sample of response classes</li>
 </ul></li>
 </ul>
 </section>
 <section id="takeaways" class="slide level2">
 <h2>Takeaways</h2>
 <ul>
-<li>Assumptions are important, but CV is king</li>
+<li>Feature engineering is difficult when there is:
+<ul>
+<li>small sample size</li>
+<li>no context for features or response<br />
+</li>
+</ul></li>
+<li>Assumptions are important, but CV is king<br />
+</li>
 <li>Food for thought:
 <ul>
-<li>With LASSO, performance doesn’t seem to suffer when adding more predictors. With more “flexible” predictors, this is not the case even though we still use CV to choose penalty parameters. Why?</li>
+<li>With LASSO, performance doesn’t seem to suffer when adding more predictors. With more “flexible” predictors, this is not the case even though we still use CV to choose penalty parameters. Why?<br />
+</li>
 </ul></li>
+<li>We did not win</li>
 </ul>
 </section>
 <section id="if-we-had-more-time" class="slide level2">
@@ -113,7 +157,9 @@
 </li>
 <li>Bayes<br />
 </li>
-<li>Testing additional classification methods</li>
+<li>Testing additional classification methods<br />
+</li>
+<li>True “ensembling” with one feature matrix and multiple prediction methods</li>
 </ul>
 </section>
 
@@ -122,7 +168,7 @@
   just remove “progress” element.
   -->
   <!-- <div class="progress"></div> -->
-  <script src="project_presentationRG_files\rmdshower/node_modules/shower/node_modules/shower-core/shower.min.js"></script>
+  <script src="project_presentationRG_files/rmdshower/node_modules/shower/node_modules/shower-core/shower.min.js"></script>
   <!-- Copyright © 2015 Yours Truly, Famous Inc. -->
   <!-- Photos by John Carey, fiftyfootshadows.net -->
 

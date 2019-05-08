@@ -45,8 +45,26 @@ library(caretEnsemble)
 library(MLmetrics)
 ```
 
+## Stat 602 Final Project: </br> Don't Overfit! II  
+
+
+<p class = "black">
+Nate Garton and Kiegan Rice
+</p>
+
+<img src = "xkcd_overfit.png" width="700px" height="400px"/>  
+
+
+
 ## Background
-- Some background
+- Kaggle's "Don't Overfit! II" competition
+- 250 cases in training / 19,750 in testing  
+    - 1,975 (10%) testing cases used for public leaderboard
+- AUROC used for scoring  
+- 300 feature columns
+    - no column names  
+- Response: 0-1 Classification  
+
 
 ## EDA
 ```{r, eval = TRUE, echo = FALSE}
@@ -119,26 +137,39 @@ train %>%
     
 ## Feature Engineering
 - Only consider functions of variables retained by a LASSO on raw data  
-- multivariate Gaussian LR  
 - univariate Gaussian log-LRs  
 - univariate kernel density log-LRs  
-- model-based clustering, removing response  
 
-## Model Fitting
+## Model Fitting  
+- Random forest with all raw features + Gaussian log-LRs 
+    - using OOB error for training
+    - Final AUROC: 0.773 ($\downarrow$ 0.007)
 - LASSO with all raw features + Gaussian log-LRs ($\lambda_{1se}$)
     - keeps only the raw column 33 and 65
-    - Final AUROC: 0.833 ($\downarrow$ 0.015)
+    - Final AUROC: 0.833 ($\downarrow$ 0.015)  
+- Combined predictions for a few models 
+    - Averaged testing set predictions on two LASSO models and a random forest  
+    - (Barely) better public AUROC initially
+    - Final AUROC: 0.833 ($\downarrow$ 0.016)  
     
 ## Failed Ideas
 - Fitting flexible predictors on all raw data (or raw data + engineered features)
-    - Fitting flexible predictors on small sets of engineered features worked better, but not competitive
+    - Fitting flexible predictors on small sets of engineered features worked better, but not competitive  
+- Unsupervised clustering to hunt for signal, relationships between variables  
+    - Model-based clustering using `Mclust` package  
+    - Resulting clusters essentially random sample of response classes  
 
-## Takeaways
-- Assumptions are important, but CV is king
+## Takeaways  
+- Feature engineering is difficult when there is: 
+    - small sample size
+    - no context for features or response  
+- Assumptions are important, but CV is king  
 - Food for thought: 
-    - With LASSO, performance doesn't seem to suffer when adding more predictors. With more "flexible" predictors,  this is not the case even though we still use CV to choose penalty parameters. Why?
+    - With LASSO, performance doesn't seem to suffer when adding more predictors. With more "flexible" predictors,  this is not the case even though we still use CV to choose penalty parameters. Why?  
+- We did not win 
     
 ## If we had more time...
 - Test several hypothetical generative data models for compatibility with training data  
 - Bayes  
 - Testing additional classification methods  
+- True "ensembling" with one feature matrix and multiple prediction methods  
