@@ -1,7 +1,7 @@
 ---
 title: "Stat 602 Project Report:"
 subtitle: "Kaggle's 'Don't Overfit! II'"
-author: "Kiegan Rice and Nate Garton"
+author: "Kiegan Rice (ricek@iastate.edu) and Nate Garton (nmgarton@iastate.edu)"
 date: "Due May 10, 2019"
 output: 
   pdf_document: 
